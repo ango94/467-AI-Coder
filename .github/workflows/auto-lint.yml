@@ -28,7 +28,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install flake8
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          npm install --no-save eslint @babel/eslint-parser eslint-plugin-react eslint-plugin-react-hooks
+          npm install --no-save eslint @eslint/js @babel/eslint-parser eslint-plugin-react eslint-plugin-react-hooks
 
       - name: Lint Python files
         run: |
