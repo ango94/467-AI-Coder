@@ -11,8 +11,8 @@ function App() {
   const isLoggedIn = !!localStorage.getItem('user_id');
 
   return (
-    <Router>
-      <Routes>
+  <Router>
+    <Routes>
 {/* Root path */}
         <Route path="/" element={isLoggedIn ? <Navigate to="/todo" /> : <Navigate to="/login" />} />
 
