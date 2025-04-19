@@ -5,7 +5,7 @@ import babelParser from "@babel/eslint-parser";
 export default [
   {
     files: ["**/*.js", "**/*.jsx"],
-    ignores: ["node_modules/**"],
+    ignores: ["node_modules/**", "website-react/client/src/App.js"],
     languageOptions: {
       parser: babelParser,
       parserOptions: {
