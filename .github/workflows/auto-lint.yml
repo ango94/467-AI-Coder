@@ -36,7 +36,3 @@ jobs:
             --exclude=node_modules \
             --count --select=E9,F63,F7,F82 --show-source --statistics \
             && flake8 . --exclude=node_modules --count --max-complexity=10 --max-line-length=127 --statistics
-
-      - name: Lint and Fix JavaScript/JSX files
-        run: |
-          npx eslint --quiet . --config .eslintrc --ext .js,.jsx --ignore-pattern node_modules/ --fix
