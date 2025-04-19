@@ -1,8 +1,9 @@
 {
   "type": "module",
   "devDependencies": {
-    "@babel/eslint-parser": "^7.27.0",
-    "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^5.2.0"
+    "eslint": "^9.0.0", 
+    "@babel/eslint-parser": "^7.27.0", 
+    "eslint-plugin-react": "^7.37.5", 
+    "eslint-plugin-react-hooks": "^5.2.0" 
   }
 }

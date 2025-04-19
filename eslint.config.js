@@ -9,8 +9,8 @@ export default [
     languageOptions: {
       parser: babelParser,
       parserOptions: {
-        ecmaVersion: 2021,
-        sourceType: "module",
+        ecmaVersion: 2021, // Use ECMAScript 2021
+        sourceType: "module", // Enable ES modules
         ecmaFeatures: {
           jsx: true, // Enable JSX parsing
         },
