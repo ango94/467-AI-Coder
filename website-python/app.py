@@ -23,7 +23,9 @@ todo_template = '''
 <h3>Your To-Do List:</h3>
 <ul>
   {% for todo in todos %}
-    <li>{{ todo[2] }} - <a href="/edit/{{ todo[0] }}">Edit</a> | <a href="/delete/{{ todo[0] }}">Delete</a></li>
+    <li>{{ todo[2] }} - 
+        <a href="/edit/{{ todo[0] }}">Edit</a> | 
+        <a href="/delete/{{ todo[0] }}">Delete</a></li>
   {% endfor %}
 </ul>
 <form method="post" action="/add">
@@ -62,7 +64,10 @@ def login():
         username = request.form['username']
         password = request.form['password']
         cur = get_db().cursor()
-        query = f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'"  # SQLi vulnerable
+        query = (
+            f"SELECT * FROM users "
+            f"WHERE username = '{username}' AND password = '{password}'"
+        )
         cur.execute(query)
         user = cur.fetchone()
         if user:
@@ -81,7 +86,9 @@ def todos():
         return redirect('/')
     db = get_db()
     cur = db.cursor()
-    cur.execute(f"SELECT * FROM todos WHERE user_id = {session['user_id']}")  # No ownership checks
+    cur.execute(
+        f"SELECT * FROM todos WHERE user_id = {session['user_id']}"
+    )
     todos = cur.fetchall()
     return render_template_string(todo_template, todos=todos)
 
@@ -93,7 +100,10 @@ def add():
     task = request.form['task']
     db = get_db()
     cur = db.cursor()
-    cur.execute(f"INSERT INTO todos (user_id, task) VALUES ({session['user_id']}, '{task}')")  # SQLi vulnerable
+    cur.execute(
+        f"INSERT INTO todos (user_id, task) "
+        f"VALUES ({session['user_id']}, '{task}')"
+    )
     db.commit()
     log_action(f"Add Task: {task}")
     return redirect('/todos')
@@ -105,7 +115,9 @@ def edit(todo_id):
     cur = db.cursor()
     if request.method == 'POST':
         task = request.form['task']
-        cur.execute(f"UPDATE todos SET task = '{task}' WHERE id = {todo_id}")  # SQLi vulnerable
+        cur.execute(
+            f"UPDATE todos SET task = '{task}' WHERE id = {todo_id}"
+        )
         db.commit()
         log_action(f"Edit Task ID {todo_id}: {task}")
         return redirect('/todos')
