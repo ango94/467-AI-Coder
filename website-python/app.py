@@ -6,6 +6,7 @@ app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # Insecure: hardcoded secret key
 DATABASE = 'todo.db'
 
+
 # Templates (for demo purposes, HTML is inline)
 login_template = '''
 <h2>Login</h2>
@@ -17,14 +18,15 @@ login_template = '''
 {% if error %}<p style="color:red">{{ error }}</p>{% endif %}
 '''
 
+
 todo_template = '''
 <h2>Welcome, {{ session['username'] }}!</h2>
 <a href="/logout">Logout</a>
 <h3>Your To-Do List:</h3>
 <ul>
   {% for todo in todos %}
-    <li>{{ todo[2] }} - 
-        <a href="/edit/{{ todo[0] }}">Edit</a> | 
+    <li>{{ todo[2] }} -
+        <a href="/edit/{{ todo[0] }}">Edit</a> |
         <a href="/delete/{{ todo[0] }}">Delete</a></li>
   {% endfor %}
 </ul>
@@ -33,6 +35,7 @@ todo_template = '''
   <input type="submit" value="Add">
 </form>
 '''
+
 
 edit_template = '''
 <h2>Edit Task</h2>
