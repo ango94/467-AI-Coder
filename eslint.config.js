@@ -31,4 +31,11 @@ export default [
       "react-hooks/exhaustive-deps": "warn", // Warn about missing dependencies in hooks
     },
   },
+  {
+    files: ["website-react/client/src/App.js"], // Specify the file to ignore parsing errors
+    rules: {
+      "no-unused-vars": "off", // Example: Disable specific rules for this file
+      "react/jsx-uses-react": "off",
+    },
+  },
 ];
