@@ -40,17 +40,20 @@ edit_template = '''
 </form>
 '''
 
+
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
         db = g._database = sqlite3.connect(DATABASE)
     return db
 
+
 @app.teardown_appcontext
 def close_connection(exception):
     db = getattr(g, '_database', None)
     if db is not None:
         db.close()
+
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -71,6 +74,7 @@ def login():
             error = 'Invalid credentials'
     return render_template_string(login_template, error=error)
 
+
 @app.route('/todos')
 def todos():
     if 'user_id' not in session:
@@ -80,6 +84,7 @@ def todos():
     cur.execute(f"SELECT * FROM todos WHERE user_id = {session['user_id']}")  # No ownership checks
     todos = cur.fetchall()
     return render_template_string(todo_template, todos=todos)
+
 
 @app.route('/add', methods=['POST'])
 def add():
@@ -92,6 +97,7 @@ def add():
     db.commit()
     log_action(f"Add Task: {task}")
     return redirect('/todos')
+
 
 @app.route('/edit/<int:todo_id>', methods=['GET', 'POST'])
 def edit(todo_id):
@@ -107,6 +113,7 @@ def edit(todo_id):
     task = cur.fetchone()[0]
     return render_template_string(edit_template, task=task)
 
+
 @app.route('/delete/<int:todo_id>')
 def delete(todo_id):
     db = get_db()
@@ -116,6 +123,7 @@ def delete(todo_id):
     log_action(f"Delete Task ID {todo_id}")
     return redirect('/todos')
 
+
 @app.route('/logout')
 def logout():
     user = session.get('username', 'Unknown')
@@ -123,9 +131,11 @@ def logout():
     log_action(f"Logout: {user}")
     return redirect('/')
 
+
 def log_action(action):
     with open('actions.log', 'a') as f:
         f.write(f"{action}\n")
+
 
 def init_db():
     if not os.path.exists(DATABASE):
@@ -144,6 +154,7 @@ def init_db():
                 INSERT INTO users (username, password) VALUES ('admin', 'admin');
             ''')
             print("Initialized database with demo user: admin/admin")
+
 
 if __name__ == '__main__':
     init_db()
