@@ -39,4 +39,4 @@ jobs:
 
       - name: Lint JavaScript/JSX files
         run: |
-          npx eslint . --ext .js,.jsx --ignore-pattern node_modules/ --max-warnings=0
+          npx eslint . --config eslint.config.js --ext .js,.jsx --ignore-pattern node_modules/ --max-warnings=0
