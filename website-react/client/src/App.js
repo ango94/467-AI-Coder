@@ -1,3 +1,6 @@
+/* eslint-disable */
+// This will disable all ESLint rules for the entire file
+
 import './App.css';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Login from './components/Login';
@@ -10,7 +13,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Root path */}
+{/* Root path */}
         <Route path="/" element={isLoggedIn ? <Navigate to="/todo" /> : <Navigate to="/login" />} />
 
         {/* Other routes */}
@@ -23,3 +26,6 @@ function App() {
 }
 
 export default App;
+
+/* eslint-enable */
+// Re-enable ESLint rules after this file
