@@ -4,8 +4,8 @@ import babelParser from "@babel/eslint-parser";
 
 export default [
   {
-    files: ["**/*.js", "**/*.jsx"],
-    ignores: ["node_modules/**", "website-react/client/src/App.js"],
+    files: ["**/*.js", "**/*.jsx"], // Include all .js and .jsx files
+    ignores: ["node_modules/**"], // Ignore node_modules
     languageOptions: {
       parser: babelParser,
       parserOptions: {
@@ -13,8 +13,6 @@ export default [
         sourceType: "module",
         ecmaFeatures: {
           jsx: true, // Enable JSX parsing
-          typescript: true, // Enable TypeScript parsing
-          classProperties: true, // Enable class properties parsing
         },
         requireConfigFile: false, // Allow ESLint to run without requiring a Babel config file
       },
@@ -29,13 +27,6 @@ export default [
       "react/react-in-jsx-scope": "off", // Not needed for React 17+
       "react-hooks/rules-of-hooks": "error", // Enforce rules of hooks
       "react-hooks/exhaustive-deps": "warn", // Warn about missing dependencies in hooks
-    },
-  },
-  {
-    files: ["website-react/client/src/App.js"], // Specify the file to ignore parsing errors
-    rules: {
-      "no-unused-vars": "off", // Example: Disable specific rules for this file
-      "react/jsx-uses-react": "off",
     },
   },
 ];
