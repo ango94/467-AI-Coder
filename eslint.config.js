@@ -18,14 +18,14 @@ export default [
     },
     plugins: {
       react,
-      reactHooks,
+      "react-hooks": reactHooks, // Explicitly define the react-hooks plugin
     },
     rules: {
       "react/jsx-uses-react": "error",
       "react/jsx-uses-vars": "error",
       "react/react-in-jsx-scope": "off", // Not needed for React 17+
-      "react-hooks/rules-of-hooks": "error",
-      "react-hooks/exhaustive-deps": "warn",
+      "react-hooks/rules-of-hooks": "error", // Enforce rules of hooks
+      "react-hooks/exhaustive-deps": "warn", // Warn about missing dependencies in hooks
     },
   },
 ];
