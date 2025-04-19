@@ -33,9 +33,10 @@ jobs:
       - name: Lint Python files
         run: |
           flake8 . \
+            --exclude=node_modules \
             --count --select=E9,F63,F7,F82 --show-source --statistics \
-            && flake8 . --count --max-complexity=10 --max-line-length=127 --statistics
+            && flake8 . --exclude=node_modules --count --max-complexity=10 --max-line-length=127 --statistics
 
       - name: Lint JavaScript/JSX files
         run: |
-          npx eslint . --ext .js,.jsx --max-warnings=0
+          npx eslint . --ext .js,.jsx --ignore-pattern node_modules/ --max-warnings=0
