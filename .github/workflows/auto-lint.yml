@@ -39,4 +39,4 @@ jobs:
 
       - name: Lint and Fix JavaScript/JSX files
         run: |
-          npx eslint . --config eslint.config.js --ext .js,.jsx --ignore-pattern node_modules/ --fix
+          npx eslint . --config eslint.config.js --ext .js,.jsx --ignore-pattern node_modules/ --fix --quiet
