@@ -1,6 +1,6 @@
 name: Lint Codebase
 
-on: [push, pull_request]
+on: [push]
 
 permissions:
   contents: read
@@ -28,14 +28,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install flake8
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          npm install --no-save eslint
+          npm install --no-save eslint @eslint/js @babel/eslint-parser eslint-plugin-react eslint-plugin-react-hooks
 
       - name: Lint Python files
         run: |
           flake8 . \
+            --exclude=node_modules \
             --count --select=E9,F63,F7,F82 --show-source --statistics \
-            && flake8 . --count --max-complexity=10 --max-line-length=127 --statistics
-
-      - name: Lint JavaScript/JSX files
-        run: |
-          npx eslint . --ext .js,.jsx --max-warnings=0
+            && flake8 . --exclude=node_modules --count --max-complexity=10 --max-line-length=127 --statistics

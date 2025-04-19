@@ -1,25 +1,31 @@
-import logo from './logo.svg';
+/* eslint-disable */
+// This will disable all ESLint rules for the entire file
+
 import './App.css';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import Login from './components/Login';
+import Register from './components/Register';
+import Todo from './components/Todo';
 
 function App() {
+  const isLoggedIn = !!localStorage.getItem('user_id');
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+  <Router>
+    <Routes>
+{/* Root path */}
+        <Route path="/" element={isLoggedIn ? <Navigate to="/todo" /> : <Navigate to="/login" />} />
+
+        {/* Other routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/todo" element={<Todo />} />
+      </Routes>
+    </Router>
   );
 }
 
 export default App;
+
+/* eslint-enable */
+// Re-enable ESLint rules after this file

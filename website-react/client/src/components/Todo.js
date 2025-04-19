@@ -1,0 +1,104 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+
+function TodoPage() {
+  const navigate = useNavigate();
+  const userId = localStorage.getItem('user_id');
+
+  const [todos, setTodos] = useState([]);
+  const [newTodo, setNewTodo] = useState('');
+  const [editing, setEditing] = useState(null);
+  const [editContent, setEditContent] = useState('');
+
+  // 🔒 Redirect if not logged in
+  useEffect(() => {
+    if (!userId) {
+      navigate('/');
+    } else {
+      refreshTodos();
+    }
+  }, [userId, navigate]);
+
+  const refreshTodos = () => {
+    axios.get(`http://localhost:5000/todos/${userId}`)
+      .then(res => setTodos(res.data))
+      .catch(err => console.error('Failed to fetch todos:', err));
+  };
+
+  const addTodo = async () => {
+    if (!newTodo.trim()) return;
+    await axios.post('http://localhost:5000/todos', {
+      user_id: userId,
+      content: newTodo
+    });
+    setNewTodo('');
+    refreshTodos();
+  };
+
+  const deleteTodo = async (id) => {
+    await axios.delete(`http://localhost:5000/todos/${id}`);
+    refreshTodos();
+  };
+
+  const startEditing = (todo) => {
+    setEditing(todo.id);
+    setEditContent(todo.content);
+  };
+
+  const updateTodo = async () => {
+    await axios.put(`http://localhost:5000/todos/${editing}`, {
+      content: editContent
+    });
+    setEditing(null);
+    setEditContent('');
+    refreshTodos();
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('user_id');
+    navigate('/login');
+  };
+
+  return (
+    <div>
+      <h2>Your TODO List</h2>
+      <button onClick={handleLogout}>Logout</button>
+
+      <div>
+        <input
+          type="text"
+          placeholder="New task"
+          value={newTodo}
+          onChange={(e) => setNewTodo(e.target.value)}
+        />
+        <button onClick={addTodo}>Add</button>
+      </div>
+
+      <ul>
+        {todos.map(todo => (
+          <li key={todo.id}>
+            {editing === todo.id ? (
+              <>
+                <input
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                />
+                <button onClick={updateTodo}>Save</button>
+                <button onClick={() => setEditing(null)}>Cancel</button>
+              </>
+            ) : (
+              <>
+                {todo.content}
+                <button onClick={() => startEditing(todo)}>Edit</button>
+                <button onClick={() => deleteTodo(todo.id)}>Delete</button>
+              </>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default TodoPage;
