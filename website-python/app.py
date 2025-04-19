@@ -163,7 +163,8 @@ def init_db():
                     user_id INTEGER,
                     task TEXT
                 );
-                INSERT INTO users (username, password) VALUES ('admin', 'admin');
+                INSERT INTO users (username, password) VALUES ('admin',
+                             'admin');
             ''')
             print("Initialized database with demo user: admin/admin")
 
