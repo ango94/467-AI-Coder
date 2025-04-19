@@ -13,6 +13,8 @@ export default [
         sourceType: "module",
         ecmaFeatures: {
           jsx: true, // Enable JSX parsing
+          typescript: true, // Enable TypeScript parsing
+          classProperties: true, // Enable class properties parsing
         },
         requireConfigFile: false, // Allow ESLint to run without requiring a Babel config file
       },
