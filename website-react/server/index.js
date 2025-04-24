@@ -85,6 +85,27 @@ app.get('/todos/:userId', async (req, res) => {
   }
 });
 
+
+
+/////////////////////ADDING SECTION THAT WOULD ALLOW SQL INJECTION ATTACK THEN COMMENTING OUT///////////////////////
+// Add new todo
+// app.post('/todos', async (req, res) => {
+//   const { user_id, content } = req.body;
+//   try {
+//     // Directly interpolate user input into the query string (vulnerable to SQL injection)
+//     const query = `INSERT INTO todos (user_id, content) VALUES (${user_id}, '${content}')`;
+//     await pool.query(query);
+
+//     logEvent(`User ${user_id} added a TODO: "${content}"`);
+//     res.status(201).json({ message: 'Todo added' });
+//   } catch (err) {
+//     console.error('Error adding todo:', err.message);
+//     res.status(500).json({ message: 'Failed to add todo' });
+//   }
+// });
+////////////////////////////////////////////////////////////////////////////////////
+
+
 // Add new todo
 app.post('/todos', async (req, res) => {
   const { user_id, content } = req.body;

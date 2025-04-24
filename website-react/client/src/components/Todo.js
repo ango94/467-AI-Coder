@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import Navbar from './Navbar'; // Import the Navbar component
+import './Todo.css'; // Import the custom CSS file
 
 function TodoPage() {
   const navigate = useNavigate();
@@ -11,7 +13,6 @@ function TodoPage() {
   const [editing, setEditing] = useState(null);
   const [editContent, setEditContent] = useState('');
 
-  // 🔒 Redirect if not logged in
   useEffect(() => {
     if (!userId) {
       navigate('/');
@@ -55,48 +56,43 @@ function TodoPage() {
     refreshTodos();
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('user_id');
-    navigate('/login');
-  };
-
   return (
     <div>
-      <h2>Your TODO List</h2>
-      <button onClick={handleLogout}>Logout</button>
+      <Navbar /> {/* Add the Navbar component */}
+      <div className="todo-container">
+        <div className="add-todo">
+          <input
+            type="text"
+            placeholder="New task"
+            value={newTodo}
+            onChange={(e) => setNewTodo(e.target.value)}
+          />
+          <button onClick={addTodo}>Add</button>
+        </div>
 
-      <div>
-        <input
-          type="text"
-          placeholder="New task"
-          value={newTodo}
-          onChange={(e) => setNewTodo(e.target.value)}
-        />
-        <button onClick={addTodo}>Add</button>
+        <ul className="todo-list">
+          {todos.map(todo => (
+            <li key={todo.id}>
+              {editing === todo.id ? (
+                <>
+                  <input
+                    value={editContent}
+                    onChange={(e) => setEditContent(e.target.value)}
+                  />
+                  <button onClick={updateTodo}>Save</button>
+                  <button onClick={() => setEditing(null)}>Cancel</button>
+                </>
+              ) : (
+                <>
+                  {todo.content}
+                  <button onClick={() => startEditing(todo)}>Edit</button>
+                  <button className="delete" onClick={() => deleteTodo(todo.id)}>Delete</button>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
       </div>
-
-      <ul>
-        {todos.map(todo => (
-          <li key={todo.id}>
-            {editing === todo.id ? (
-              <>
-                <input
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                />
-                <button onClick={updateTodo}>Save</button>
-                <button onClick={() => setEditing(null)}>Cancel</button>
-              </>
-            ) : (
-              <>
-                {todo.content}
-                <button onClick={() => startEditing(todo)}>Edit</button>
-                <button onClick={() => deleteTodo(todo.id)}>Delete</button>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }
