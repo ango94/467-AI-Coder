@@ -1,6 +1,6 @@
 # Node.js dependencies
 node_modules/
-
+website-python\venv
 # Logs
 npm-debug.log*
 yarn-debug.log*
