@@ -1,54 +1,66 @@
-import { useState } from 'react';
-import axios from 'axios';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import './Register.css'; // Import the custom CSS file
 
 function Register() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
     try {
-      const res = await axios.post('http://localhost:5000/register', {
-        username,
-        password,
-      });
-      setMessage(res.data.message);
-      if (res.status === 201) {
-        setTimeout(() => {
-          navigate('/');
-        }, 1000);
-      }
+      await axios.post('http://localhost:5000/register', { username, password });
+      setSuccess('Registration successful! Redirecting to login...');
+      setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
-      if (err.response) {
-        setMessage(err.response.data.message);
-      } else {
-        setMessage('Registration failed');
-      }
+      setError('Registration failed. Please try again.');
     }
   };
 
   return (
-    <div>
-      <h2>Register</h2>
-      <form onSubmit={handleRegister}>
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        /><br />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        /><br />
-        <button type="submit">Register</button>
-      </form>
-      <p>{message}</p>
+    <div className="register-container">
+      <div className="register-card">
+        <h2>Register</h2>
+        {error && <div className="error-message">{error}</div>}
+        {success && <div className="success-message">{success}</div>}
+        <form onSubmit={handleRegister}>
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
+          <button type="submit">Register</button>
+        </form>
+        <p>
+          Already have an account? <a href="/login">Login</a>
+        </p>
+      </div>
     </div>
   );
 }
