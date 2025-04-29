@@ -46,6 +46,25 @@ app.post('/register', async (req, res) => {
   }
 });
 
+// Update Password
+app.put('/users/:username', async (req, res) => {
+  const { username } = req.params;
+  const { newPass } = req.body;
+  try {
+    console.log(username, newPass)
+    await pool.query(
+      'UPDATE users SET password = $1 WHERE username = $2',  // Changed 'content' to 'password'
+      [newPass, username]
+    );
+    logEvent(`Password updated for "${username}"`);
+    res.json({ message: 'Password updated successfully' });
+  } catch (err) {
+    console.error('Error updating password:', err.message);
+    res.status(500).json({ message: 'Failed to update password' });  // Fixed error message
+  }
+});
+
+
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
