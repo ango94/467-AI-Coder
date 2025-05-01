@@ -11,8 +11,21 @@ function Register() {
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
+  const validatePassword = (password) => {
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    return passwordRegex.test(password);
+  };
+
   const handleRegister = async (e) => {
     e.preventDefault();
+
+    if (!validatePassword(password)) {
+      setError(
+        'Password must meet the requirements listed below.'
+      );
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -48,6 +61,16 @@ function Register() {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+          <div className="password-rules">
+            <p>Password must:</p>
+            <ul>
+              <li>Be at least 8 characters long</li>
+              <li>Include at least one uppercase letter</li>
+              <li>Include at least one lowercase letter</li>
+              <li>Include at least one number</li>
+              <li>Include at least one special character (e.g., @, $, !, %, *, ?, &)</li>
+            </ul>
+          </div>
           <input
             type="password"
             placeholder="Confirm Password"

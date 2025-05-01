@@ -73,3 +73,20 @@
 .register-card a:hover {
   text-decoration: underline;
 }
+
+/* Password rules styling */
+.password-rules {
+  margin-top: -10px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.password-rules ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.password-rules li {
+  margin-bottom: 5px;
+}
