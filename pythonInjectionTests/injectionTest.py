@@ -13,6 +13,7 @@ payloads = [
 # The new password we try to inject (can be any dummy value for testing)
 new_password = "hacked123"
 
+
 def test_sql_injection():
     for payload in payloads:
         target_url = base_url + payload
@@ -23,6 +24,7 @@ def test_sql_injection():
             print(f"Response Body:\n{response.text[:500]}")
         except Exception as e:
             print(f"Request failed: {e}")
+
 
 if __name__ == "__main__":
     test_sql_injection()
