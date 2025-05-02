@@ -44,7 +44,8 @@ async function initDatabase() {
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         username VARCHAR(45) UNIQUE NOT NULL,
-        password VARCHAR(45) NOT NULL
+        password VARCHAR(45) NOT NULL,
+        role TEXT DEFAULT 'user'
       );
     `);
     console.log("Table 'users' checked/created.");
@@ -58,6 +59,28 @@ async function initDatabase() {
       );
     `);
     console.log("Table 'todos' checked/created.");
+    
+    // Insert test admin and user if they don’t already exist
+    const adminExists = await projectClient.query(`SELECT * FROM users WHERE username = 'admin'`);
+    const userExists = await projectClient.query(`SELECT * FROM users WHERE username = 'user1'`);
+    
+    if (adminExists.rowCount === 0) {
+      const hashedAdmin = 'admin123';
+      await projectClient.query(
+        'INSERT INTO users (username, password, role) VALUES ($1, $2, $3)',
+        ['admin', hashedAdmin, 'admin']
+      );
+      console.log('Admin user created');
+    }
+
+    if (userExists.rowCount === 0) {
+      const hashedUser = 'user123';
+      await projectClient.query(
+        'INSERT INTO users (username, password, role) VALUES ($1, $2, $3)',
+        ['user1', hashedUser, 'user']
+      );
+      console.log('Regular user created');
+    }
 
     await projectClient.end();
 

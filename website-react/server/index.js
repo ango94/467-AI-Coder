@@ -26,26 +26,28 @@ const pool = new Pool({
 });
 
 // Routes
+// ======================= REGISTER =======================
 app.post('/register', async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, role } = req.body;
 
   try {
     await pool.query(
-      'INSERT INTO users (username, password) VALUES ($1, $2)',
-      [username, password]
+      'INSERT INTO users (username, password, role) VALUES ($1, $2, $3)',
+      [username, password, role || 'user']
     );
 
     const result = await pool.query('SELECT * FROM users');
     console.table(result.rows);
 
     logEvent(`User registered: ${username}`);
-    res.status(201).json({ message: 'User registered successfully' });
-  } catch (err) {
-    console.error('Registration error:', err.message);
-    res.status(500).json({ message: 'Failed to register user' });
+    res.status(201).json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: 'Registration failed' });
   }
 });
 
+// ======================= LOGIN =======================
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
@@ -55,17 +57,15 @@ app.post('/login', async (req, res) => {
       [username, password]
     );
 
-    if (result.rows.length > 0) {
-      const user_id = result.rows[0].id;
-      logEvent(`Login success for: ${username} (user_id: ${user_id})`);
-      res.status(200).json({ message: 'Login successful', user_id });
+    if (result.rows.length === 1) {
+      const user = result.rows[0];
+      res.status(200).json({ success: true, id: user.id, username: user.username, role: user.role });
     } else {
-      logEvent(`Login failed for: ${username}`);
-      res.status(401).json({ message: 'Invalid username or password' });
+      res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
   } catch (err) {
-    console.error('Login error:', err.message);
-    res.status(500).json({ message: 'Login error' });
+    console.error(err);
+    res.status(500).json({ success: false });
   }
 });
 
@@ -153,6 +153,25 @@ app.delete('/todos/:id', async (req, res) => {
   } catch (err) {
     console.error('Error deleting todo:', err.message);
     res.status(500).json({ message: 'Failed to delete todo' });
+  }
+});
+
+// ========== AdminDashboard-safe endpoints ==========
+app.get('/users', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, username FROM users');
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
+app.delete('/delete-user/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM users WHERE id = $1', [req.params.id]);
+    res.send('User deleted');
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete user' });
   }
 });
 
