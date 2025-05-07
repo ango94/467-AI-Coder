@@ -13,6 +13,12 @@ function Register() {
   const navigate = useNavigate();
 
   const validatePassword = (password) => {
+    //So this regex checks for:
+    // 1. At least one lowercase letter
+    // 2. At least one uppercase letter 
+    // 3. At least one digit
+    // 4. At least one special character (e.g., @, $, !, %, *, ?, &)
+    // 5. Minimum length of 8 characters
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     return passwordRegex.test(password);
   };
