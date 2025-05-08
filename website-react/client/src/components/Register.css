@@ -27,8 +27,8 @@
 }
 
 .register-card input {
-  width: 100%;
-  padding: 0.8rem;
+  width: 95%;
+  padding: 0.6rem;
   margin-bottom: 1rem;
   border: 1px solid #cccccc;
   border-radius: 4px;
@@ -74,56 +74,3 @@
   text-decoration: underline;
 }
 
-/* Password rules styling */
-.password-rules {
-  margin-top: -10px;
-  margin-bottom: 20px;
-  font-size: 0.9rem;
-  color: #555;
-}
-
-.password-rules ul {
-  margin: 0;
-  padding-left: 20px;
-}
-
-.password-rules li {
-  margin-bottom: 5px;
-}
-
-/* Password field container */
-.password-field {
-  position: relative;
-  margin-bottom: 1rem;
-}
-
-/* Password input */
-.password-field input {
-  width: 90%;
-  padding: 0.8rem;
-  padding-right: 3rem; /* Add space for the button */
-  border: 1px solid #cccccc;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-/* Toggle password button */
-.toggle-password {
-  width: 20%;
-
-}
-
-.toggle-password:hover {
-  text-decoration: underline;
-  color: #0056b3; /* Slightly darker color on hover */
-}
-
-#toggle_password1{
-  width: 50%;
-  margin-left: 25%;
-}
-
-#toggle_password2{
-  width: 50%;
-  margin-left: 25%;
-}

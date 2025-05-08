@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Register.css'; // Import the custom CSS file
+import PasswordInput from './PasswordInput'; // Adjust the path if necessary
+
 
 function Register() {
   const [username, setUsername] = useState('');
@@ -50,7 +52,17 @@ function Register() {
   return (
     <div className="register-container">
       <div className="register-card">
-        <h2>Register</h2>
+      <h2>Register</h2>
+      <div className="password-rules">
+            <p>Password must:</p>
+            <ul>
+              <li>Be at least 8 characters long</li>
+              <li>Include at least one uppercase letter</li>
+              <li>Include at least one lowercase letter</li>
+              <li>Include at least one number</li>
+              <li>Include at least one special character (e.g., @, $, !, %, *, ?, &)</li>
+            </ul>
+      </div>
         {error && <div className="error-message">{error}</div>}
         {success && <div className="success-message">{success}</div>}
         <form onSubmit={handleRegister}>
@@ -61,50 +73,17 @@ function Register() {
             onChange={(e) => setUsername(e.target.value)}
             required
           />
-          <div className="password-field">
-            <input
-              type={showPassword ? 'text' : 'password'} // Toggle input type
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <button
-              id="toggle_password1"
-              type="button"
-              className="toggle-password"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? 'Hide' : 'Show Password'}
-            </button>
-          </div>
-          <div className="password-rules">
-            <p>Password must:</p>
-            <ul>
-              <li>Be at least 8 characters long</li>
-              <li>Include at least one uppercase letter</li>
-              <li>Include at least one lowercase letter</li>
-              <li>Include at least one number</li>
-              <li>Include at least one special character (e.g., @, $, !, %, *, ?, &)</li>
-            </ul>
-          </div>
-          <div className="password-field">
-            <input
-              type={showPassword ? 'text' : 'password'} // Toggle input type
-              placeholder="Confirm Password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
-            <button
-              id="toggle_password2"
-              type="button"
-              className="toggle-password"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? 'Hide' : 'Show Password'}
-            </button>
-          </div>
+          <PasswordInput
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+          />
+
+          <PasswordInput
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Confirm Password"
+          />
           <button type="submit">Register</button>
         </form>
         <p>
