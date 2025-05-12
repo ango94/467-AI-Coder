@@ -11,3 +11,9 @@
 [2025-04-24T01:55:46.485Z] User 2 added a TODO: "'); DROP TABLE todos; --"
 [2025-04-24T02:08:08.819Z] Login success for: admin (user_id: 1)
 [2025-04-24T02:17:59.849Z] Login success for: admin (user_id: 1)
+[2025-05-01T21:34:14.545Z] Login success for: admin (user_id: 1)
+[2025-05-01T22:06:06.449Z] Login success for: admin (user_id: 1)
+[2025-05-01T22:25:05.652Z] User registered: admintest
+[2025-05-01T22:25:22.743Z] Login success for: admintest (user_id: 3)
+[2025-05-08T02:38:11.169Z] User registered: 0507test
+[2025-05-08T02:38:25.866Z] Login success for: 0507test (user_id: 4)
