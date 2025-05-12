@@ -7,7 +7,6 @@ import './Todo.css'; // Import the custom CSS file
 function TodoPage() {
   const navigate = useNavigate();
   const userId = localStorage.getItem('user_id');
-
   const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState('');
   const [editing, setEditing] = useState(null);

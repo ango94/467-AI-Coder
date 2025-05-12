@@ -5,7 +5,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "concurrently \"npm run server\" \"npm run client\"",
+    "start:bac": "concurrently \"npm run server:bac\" \"npm run client\"",
     "server": "cd server && nodemon index.js",
+    "server:bac": "cd server && nodemon BAC_index.js",
     "client": "cd client && npm start",
     "reset": "cd server && node resetDB.js"
   },

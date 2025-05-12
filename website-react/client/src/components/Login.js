@@ -13,8 +13,8 @@ function Login() {
     e.preventDefault();
     try {
       const res = await axios.post('http://localhost:5000/login', { username, password });
-      localStorage.setItem('user_id', res.data.user_id);
-      navigate('/todo');
+      localStorage.setItem('user', JSON.stringify(res.data));
+      navigate(res.data.role === 'admin' ? '/admin' : '/todo');
     } catch (err) {
       setError('Invalid username or password');
     }
