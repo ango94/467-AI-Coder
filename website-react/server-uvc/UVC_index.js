@@ -175,6 +175,34 @@ app.delete('/delete-user/:id', async (req, res) => {
   }
 });
 
+const serialize = require('serialize-javascript');
+
+app.get('/serialize-demo', (req, res) => {
+  // Malicious function (could come from unsafe dynamic content in real apps)
+  const xssFunction = () => {
+    alert('🚨 XSS via serialize-javascript function');
+  };
+
+  // Vulnerable serialization of function
+  const script = `<script>(${serialize(xssFunction, { isJSON: false })})();</script>`;
+
+  const html = `
+    <html>
+      <head><title>serialize-javascript XSS Demo</title></head>
+      <body>
+        <h1>Vulnerable Function Injection Demo</h1>
+        ${script}
+        <p>If this were vulnerable, an alert would appear in the browser.</p>
+      </body>
+    </html>
+  `;
+
+  console.log('[DEBUG] serialize version:', require('serialize-javascript/package.json').version);
+  console.log('[DEBUG] Rendered HTML:\n', html);
+
+  res.send(html);
+});
+
 // Server start
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
