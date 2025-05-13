@@ -6,6 +6,9 @@ require('dotenv').config();
 const logEvent = require('./logger');
 const bcrypt = require('bcrypt');
 const SALT_ROUNDS = 10;
+const { XMLParser } = require('fast-xml-parser');
+const xmlParser = new XMLParser({ ignoreAttributes: false, processEntities: false });
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -58,7 +61,7 @@ app.put('/users/:username', async (req, res) => {
     const hashedPass = await bcrypt.hash(newPass, SALT_ROUNDS);
     console.log(hashedPass);
     await pool.query(
-      'UPDATE users SET password = $1 WHERE username = $2', 
+      'UPDATE users SET password = $1 WHERE username = $2',
       [hashedPass, username]
     );
 
@@ -66,7 +69,7 @@ app.put('/users/:username', async (req, res) => {
     res.json({ message: 'Password updated successfully' });
   } catch (err) {
     console.error('Error updating password:', err.message);
-    res.status(500).json({ message: 'Failed to update password' }); 
+    res.status(500).json({ message: 'Failed to update password' });
   }
 });
 app.post('/login', async (req, res) => {
@@ -193,6 +196,26 @@ app.delete('/delete-user/:id', async (req, res) => {
     res.send('User deleted');
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete user' });
+  }
+});
+
+app.post('/edit-todo-xml', express.text({ type: 'application/xml' }), async (req, res) => {
+  try {
+    const parsed = xmlParser.parse(req.body);
+    const id = parsed?.todo?.id;
+    const content = parsed?.todo?.content;
+
+    if (!id || !content) {
+      return res.status(400).json({ message: 'Invalid XML: missing id or content' });
+    }
+
+    await pool.query('UPDATE todos SET content = $1 WHERE id = $2', [content, id]);
+
+    logEvent(`Todo ID ${id} updated via XML`);
+    res.json({ message: 'Todo updated via XML' });
+  } catch (err) {
+    console.error('XML update failed:', err.message);
+    res.status(500).json({ message: 'Failed to update via XML' });
   }
 });
 
