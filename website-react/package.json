@@ -6,8 +6,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "concurrently \"npm run server\" \"npm run client\"",
     "start:bac": "concurrently \"npm run server:bac\" \"npm run client\"",
+    "start:csp": "concurrently \"npm run server:csp\" \"npm run client\"",
     "server": "cd server && nodemon index.js",
     "server:bac": "cd server && nodemon BAC_index.js",
+    "server:csp": "cd server && nodemon CSP_index.js",
     "client": "cd client && npm start",
     "reset": "cd server && node resetDB.js"
   },
@@ -21,6 +23,7 @@
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
+    "helmet": "^8.1.0",
     "react-router-dom": "^7.5.1"
   }
 }
