@@ -5,6 +5,7 @@ const { Pool } = require('pg');
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const logEvent = require('./logger');
+const serialize = require('node-serialize');  // 🚨 Insecure
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -12,6 +13,7 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(cors());
 app.use(express.json()); // Parses incoming JSON requests
+
 
 // Init DB (create database + users table if needed)
 initDatabase();
@@ -233,7 +235,7 @@ app.delete('/delete-user/:id', authenticateJWT, requireAdmin, async (req, res) =
   }
 });
 
-const serialize = require('serialize-javascript');
+const serializejs = require('serialize-javascript');
 
 app.get('/serialize-demo', (req, res) => {
   const xssFunction = () => {
@@ -241,7 +243,7 @@ app.get('/serialize-demo', (req, res) => {
   };
 
   // serialize-javascript@2.1.1 will escape this properly
-  const script = `<script>(${serialize(xssFunction, { isJSON: false })})();</script>`;
+  const script = `<script>(${serializejs(xssFunction, { isJSON: false })})();</script>`;
 
   const html = `
     <html>
@@ -258,41 +260,28 @@ app.get('/serialize-demo', (req, res) => {
   res.send(html);
 });
 
-// ========== PATCHED: Secure Deserialization ==========
-// Accepts only a plain JSON object with a known schema
+// ================= INSECURE DESERIALIZATION DEMO =================
+// Route: POST /deserialize
+// Expects body: { "data": "{\"exploit\":\"_$$ND_FUNC$$_function(){ console.log('HACKED'); }\"}" }
+
 app.post('/deserialize', (req, res) => {
   try {
     const { data } = req.body;
-    logEvent(`Incoming deserialization request: ${data}`);
 
-    const parsed = JSON.parse(data);
+    // 🚨 INSECURE: Deserializing untrusted user input
+    const obj = serialize.unserialize(data);
 
-    if (typeof parsed !== 'object' || parsed === null) {
-      logEvent('Rejected: Invalid object structure');
-      return res.status(400).json({ error: 'Invalid object structure' });
+    if (typeof obj.exploit === 'function') {
+      obj.exploit(); // If the payload includes a function, this will run!
     }
 
-    const allowedKeys = ['name', 'message'];
-    const keys = Object.keys(parsed);
-
-    for (const key of keys) {
-      if (!allowedKeys.includes(key)) {
-        logEvent(`Rejected: Unexpected key "${key}"`);
-        return res.status(400).json({ error: `Unexpected key: ${key}` });
-      }
-    }
-
-    logEvent('Deserialization accepted and processed successfully');
-    res.json({
-      message: 'Deserialized safely',
-      data: parsed
-    });
-
+    res.send(`Deserialized object: ${JSON.stringify(obj)}`);
   } catch (err) {
-    logEvent(`Deserialization error: ${err.message}`);
-    res.status(400).json({ error: 'Failed to safely parse input' });
+    console.error('Deserialization error:', err.message);
+    res.status(500).send('Deserialization failed.');
   }
 });
+
 
 // Server start
 app.listen(PORT, () => {
