@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const LOGGING_ENABLED = process.env.LOGGING_ENABLED === 'true';
-const logPath = path.join(__dirname, 'server.log');
+const logPath = path.join(__dirname, '..', 'server.log');
 
 function logEvent(message) {
   if (!LOGGING_ENABLED) return;
