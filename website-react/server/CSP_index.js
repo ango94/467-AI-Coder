@@ -1,16 +1,23 @@
-
+//This is a Content Security Policy (CSP) configuration for a web application.
 const express = require('express');
 const cors = require('cors');
 const initDatabase = require('./initDB');
 const { Pool } = require('pg');
 require('dotenv').config();
 const logEvent = require('./logger');
-
+const bcrypt = require('bcrypt');
+const SALT_ROUNDS = 10;
 const helmet = require('helmet');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+
+
+
+
+
+// Use helmet with CSP configuration
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
@@ -33,7 +40,6 @@ app.use(express.urlencoded({ extended: true }));
 
 
 
-// Init DB (create database + users table if needed)
 initDatabase();
 
 // DB pool
@@ -68,6 +74,26 @@ app.post('/register', async (req, res) => {
 });
 
 // ======================= LOGIN =======================
+// Update Password
+app.put('/users/:username', async (req, res) => {
+  const { username } = req.params;
+  const { newPass } = req.body;
+
+  try {
+    const hashedPass = await bcrypt.hash(newPass, SALT_ROUNDS);
+    console.log(hashedPass);
+    await pool.query(
+      'UPDATE users SET password = $1 WHERE username = $2', 
+      [hashedPass, username]
+    );
+
+    logEvent(`Password updated for "${username}"`);
+    res.json({ message: 'Password updated successfully' });
+  } catch (err) {
+    console.error('Error updating password:', err.message);
+    res.status(500).json({ message: 'Failed to update password' }); 
+  }
+});
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
@@ -105,6 +131,25 @@ app.get('/todos/:userId', async (req, res) => {
   }
 });
 
+
+
+/////////////////////ADDING SECTION THAT WOULD ALLOW SQL INJECTION ATTACK THEN COMMENTING OUT///////////////////////
+// Add new todo
+// app.post('/todos', async (req, res) => {
+//   const { user_id, content } = req.body;
+//   try {
+//     // Directly interpolate user input into the query string (vulnerable to SQL injection)
+//     const query = `INSERT INTO todos (user_id, content) VALUES (${user_id}, '${content}')`;
+//     await pool.query(query);
+
+//     logEvent(`User ${user_id} added a TODO: "${content}"`);
+//     res.status(201).json({ message: 'Todo added' });
+//   } catch (err) {
+//     console.error('Error adding todo:', err.message);
+//     res.status(500).json({ message: 'Failed to add todo' });
+//   }
+// });
+////////////////////////////////////////////////////////////////////////////////////
 
 
 // Add new todo
@@ -174,31 +219,6 @@ app.delete('/delete-user/:id', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete user' });
   }
-});
-
-const serialize = require('serialize-javascript');
-
-app.get('/serialize-demo', (req, res) => {
-  const xssFunction = () => {
-    alert('🚨 This should not run');
-  };
-
-  // serialize-javascript@2.1.1 will escape this properly
-  const script = `<script>(${serialize(xssFunction, { isJSON: false })})();</script>`;
-
-  const html = `
-    <html>
-      <head><title>Safe Serialize Demo</title></head>
-      <body>
-        <h2>Serialized output (secure)</h2>
-        ${script}
-        <p>This function should appear as a string and not execute.</p>
-      </body>
-    </html>
-  `;
-
-  console.log('[SECURE] serialize-javascript version:', require('serialize-javascript/package.json').version);
-  res.send(html);
 });
 
 // Server start
