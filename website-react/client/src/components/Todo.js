@@ -15,6 +15,13 @@ function TodoPage() {
   const [editing, setEditing] = useState(null);
   const [editContent, setEditContent] = useState('');
 
+  const refreshTodos = useCallback(() => {
+    if (!userId) return;
+    axios.get(`/todos/${userId}`)
+      .then(res => setTodos(res.data))
+      .catch(err => console.error('Failed to fetch todos:', err));
+  }, [userId]);
+
   useEffect(() => {
     if (!userId) {
       navigate('/');
@@ -22,13 +29,6 @@ function TodoPage() {
       refreshTodos();
     }
   }, [token, userId, navigate, refreshTodos]);
-
-  const refreshTodos = useCallback(() => {
-    if (!userId) return;
-    axios.get(`/todos/${userId}`)
-      .then(res => setTodos(res.data))
-      .catch(err => console.error('Failed to fetch todos:', err));
-  }, [userId]);
 
   const addTodo = async () => {
     if (!newTodo.trim()) return;
