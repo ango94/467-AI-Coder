@@ -4,6 +4,7 @@ const cors = require('cors');
 const initDatabase = require('./initDB');
 const { Pool } = require('pg');
 require('dotenv').config();
+const jwt = require('jsonwebtoken');
 const logEvent = require('./logger');
 
 const helmet = require('helmet');
@@ -45,24 +46,60 @@ const pool = new Pool({
   database: process.env.DB_NAME
 });
 
+// Global request logger
+app.use((req, res, next) => {
+  const ip = req.ip || req.connection.remoteAddress;
+  const ua = req.headers['user-agent'];
+  logEvent(`Incoming ${req.method} to ${req.url} from ${ip} | UA: ${ua}`);
+  next();
+});
+
+// ======= AUTH MIDDLEWARE (Simulated via headers) =======
+function generateToken(user) {
+  return jwt.sign(
+    { id: user.id, username: user.username, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRES_IN || '1h' }
+  );
+}
+
+function authenticateJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Missing or malformed token' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(403).json({ error: 'Invalid or expired token' });
+  }
+}
+
+function requireAdmin(req, res, next) {
+  if (req.user?.role === 'admin') return next();
+  return res.status(403).json({ error: 'Forbidden: Admins only' });
+}
+
+
 // Routes
 // ======================= REGISTER =======================
 app.post('/register', async (req, res) => {
-  const { username, password, role } = req.body;
+  const { username, password } = req.body;
+  const role = 'user';
 
   try {
     await pool.query(
       'INSERT INTO users (username, password, role) VALUES ($1, $2, $3)',
-      [username, password, role || 'user']
+      [username, password, role]
     );
-
-    const result = await pool.query('SELECT * FROM users');
-    console.table(result.rows);
-
     logEvent(`User registered: ${username}`);
     res.status(201).json({ success: true });
   } catch (error) {
-    console.error(error);
+    logEvent(`Registration error for ${username}: ${error.message}`);
     res.status(500).json({ success: false, error: 'Registration failed' });
   }
 });
@@ -79,28 +116,33 @@ app.post('/login', async (req, res) => {
 
     if (result.rows.length === 1) {
       const user = result.rows[0];
-      res.status(200).json({ success: true, id: user.id, username: user.username, role: user.role });
+      const token = generateToken(user);
+      logEvent(`Login SUCCESS: ${username}`);
+      res.status(200).json({ token });
     } else {
+      logEvent(`Login FAILURE: ${username}`);
       res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
   } catch (err) {
-    console.error(err);
+    logEvent(`Login ERROR for ${username}: ${err.message}`);
     res.status(500).json({ success: false });
   }
 });
 
+// ======================= TODOS =======================
 // Get todos for a user by user ID
-app.get('/todos/:userId', async (req, res) => {
+app.get('/todos/:userId', authenticateJWT, async (req, res) => {
   const { userId } = req.params;
+  if (parseInt(userId) !== req.user.id && req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Forbidden: Not your todos' });
+  }
+
   try {
-    const result = await pool.query(
-      'SELECT * FROM todos WHERE user_id = $1',
-      [userId]
-    );
-    // logEvent(`Fetched TODO list for user_id: ${userId}`);
+    const result = await pool.query('SELECT * FROM todos WHERE user_id = $1', [userId]);
+    logEvent(`Fetched TODOs for user ${userId}`);
     res.json(result.rows);
   } catch (err) {
-    console.error('Error fetching todos:', err.message);
+    logEvent(`Fetch TODOs ERROR for user ${userId}: ${err.message}`);
     res.status(500).json({ message: 'Failed to fetch todos' });
   }
 });
@@ -108,8 +150,10 @@ app.get('/todos/:userId', async (req, res) => {
 
 
 // Add new todo
-app.post('/todos', async (req, res) => {
-  const { user_id, content } = req.body;
+app.post('/todos', authenticateJWT, async (req, res) => {
+  const { content } = req.body;
+  const user_id = req.user.id;
+
   try {
     await pool.query(
       'INSERT INTO todos (user_id, content) VALUES ($1, $2)',
@@ -118,60 +162,75 @@ app.post('/todos', async (req, res) => {
     logEvent(`User ${user_id} added a TODO: "${content}"`);
     res.status(201).json({ message: 'Todo added' });
   } catch (err) {
-    console.error('Error adding todo:', err.message);
+    logEvent(`TODO CREATE ERROR by ${user_id}: ${err.message}`);
     res.status(500).json({ message: 'Failed to add todo' });
   }
 });
 
 
 // Update todo
-app.put('/todos/:id', async (req, res) => {
+app.put('/todos/:id', authenticateJWT, async (req, res) => {
   const { id } = req.params;
   const { content } = req.body;
+
   try {
-    await pool.query(
-      'UPDATE todos SET content = $1 WHERE id = $2',
-      [content, id]
-    );
+    const result = await pool.query('SELECT user_id FROM todos WHERE id = $1', [id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Todo not found' });
+
+    if (result.rows[0].user_id !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Forbidden: Not your todo' });
+    }
+
+    await pool.query('UPDATE todos SET content = $1 WHERE id = $2', [content, id]);
     logEvent(`Todo ID ${id} updated to: "${content}"`);
     res.json({ message: 'Todo updated' });
   } catch (err) {
-    console.error('Error updating todo:', err.message);
+    logEvent(`TODO UPDATE ERROR id ${id}: ${err.message}`);
     res.status(500).json({ message: 'Failed to update todo' });
   }
 });
 
 // Delete todo
-app.delete('/todos/:id', async (req, res) => {
+app.delete('/todos/:id', authenticateJWT, async (req, res) => {
   const { id } = req.params;
+
   try {
-    await pool.query(
-      'DELETE FROM todos WHERE id = $1',
-      [id]
-    );
-    logEvent(`Todo ID ${id} deleted`);
+    const result = await pool.query('SELECT user_id FROM todos WHERE id = $1', [id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Todo not found' });
+
+    if (result.rows[0].user_id !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Forbidden: Not your todo' });
+    }
+
+    await pool.query('DELETE FROM todos WHERE id = $1', [id]);
+    logEvent(`TODO DELETED id ${id}`);
     res.json({ message: 'Todo deleted' });
   } catch (err) {
-    console.error('Error deleting todo:', err.message);
+    logEvent(`TODO DELETE ERROR id ${id}: ${err.message}`);
     res.status(500).json({ message: 'Failed to delete todo' });
   }
 });
 
+
 // ========== AdminDashboard-safe endpoints ==========
-app.get('/users', async (req, res) => {
+app.get('/users', authenticateJWT, requireAdmin, async (req, res) => {
   try {
     const result = await pool.query('SELECT id, username FROM users');
+    logEvent(`Admin fetched user list`);
     res.json(result.rows);
   } catch (err) {
+    logEvent(`Admin fetch users ERROR: ${err.message}`);
     res.status(500).json({ error: 'Failed to fetch users' });
   }
 });
 
-app.delete('/delete-user/:id', async (req, res) => {
+app.delete('/delete-user/:id', authenticateJWT, requireAdmin, async (req, res) => {
   try {
     await pool.query('DELETE FROM users WHERE id = $1', [req.params.id]);
+    logEvent(`Admin deleted user id ${req.params.id}`);
     res.send('User deleted');
   } catch (err) {
+    logEvent(`Admin delete user ERROR id ${req.params.id}: ${err.message}`);
     res.status(500).json({ error: 'Failed to delete user' });
   }
 });
