@@ -32,9 +32,10 @@ app.post('/register', async (req, res) => {
   const { username, password, role } = req.body;
 
   try {
+    const hashedPass = await (bcrypt.hash(password, SALT_ROUNDS))
     await pool.query(
       'INSERT INTO users (username, password, role) VALUES ($1, $2, $3)',
-      [username, password, role || 'user']
+      [username, hashedPass, role || 'user']
     );
 
     const result = await pool.query('SELECT * FROM users');
@@ -58,7 +59,7 @@ app.put('/users/:username', async (req, res) => {
     const hashedPass = await bcrypt.hash(newPass, SALT_ROUNDS);
     console.log(hashedPass);
     await pool.query(
-      'UPDATE users SET password = $1 WHERE username = $2', 
+      'UPDATE users SET password = $1 WHERE username = $2',
       [hashedPass, username]
     );
 
@@ -66,27 +67,26 @@ app.put('/users/:username', async (req, res) => {
     res.json({ message: 'Password updated successfully' });
   } catch (err) {
     console.error('Error updating password:', err.message);
-    res.status(500).json({ message: 'Failed to update password' }); 
+    res.status(500).json({ message: 'Failed to update password' });
   }
 });
+
+
 app.post('/login', async (req, res) => {
-  const { username, password } = req.body;
+  const result = await pool.query(
+    'SELECT * FROM users WHERE username = $1',
+    [username]
+  );
 
-  try {
-    const result = await pool.query(
-      'SELECT * FROM users WHERE username = $1 AND password = $2',
-      [username, password]
-    );
+  if (result.rows.length === 1) {
+    const user = result.rows[0];
+    const isMatch = await bcrypt.compare(password, user.password);
 
-    if (result.rows.length === 1) {
-      const user = result.rows[0];
+    if (isMatch) {
       res.status(200).json({ success: true, id: user.id, username: user.username, role: user.role });
     } else {
       res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false });
   }
 });
 
