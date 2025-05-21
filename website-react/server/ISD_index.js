@@ -1,4 +1,3 @@
-
 const express = require('express');
 const cors = require('cors');
 const initDatabase = require('./initDB');
@@ -6,32 +5,14 @@ const { Pool } = require('pg');
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const logEvent = require('./logger');
-
-const helmet = require('helmet');
+const serialize = require('node-serialize');  // 🚨 Insecure
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: ["'self'"], // Allow resources from the same origin
-      scriptSrc: ["'self'", "'unsafe-inline'"], // Allow inline scripts (if necessary)
-      styleSrc: ["'self'", "'unsafe-inline'"], // Allow inline styles (if necessary)
-      imgSrc: ["'self'", "data:"], // Allow images from the same origin and data URIs
-      connectSrc: ["'self'", "http://localhost:5000"], // Allow API requests to the backend
-      fontSrc: ["'self'", "https://fonts.googleapis.com"], // Allow fonts from Google Fonts
-      objectSrc: ["'none'"], // Disallow <object>, <embed>, and <applet> elements
-      frameSrc: ["'none'"], // Disallow iframes
-    },
-  })
-);
-
 // Middleware
 app.use(cors());
 app.use(express.json()); // Parses incoming JSON requests
-app.use(express.urlencoded({ extended: true }));
-
 
 
 // Init DB (create database + users table if needed)
@@ -149,6 +130,25 @@ app.get('/todos/:userId', authenticateJWT, async (req, res) => {
 
 
 
+/////////////////////ADDING SECTION THAT WOULD ALLOW SQL INJECTION ATTACK THEN COMMENTING OUT///////////////////////
+// Add new todo
+// app.post('/todos', async (req, res) => {
+//   const { user_id, content } = req.body;
+//   try {
+//     // Directly interpolate user input into the query string (vulnerable to SQL injection)
+//     const query = `INSERT INTO todos (user_id, content) VALUES (${user_id}, '${content}')`;
+//     await pool.query(query);
+
+//     logEvent(`User ${user_id} added a TODO: "${content}"`);
+//     res.status(201).json({ message: 'Todo added' });
+//   } catch (err) {
+//     console.error('Error adding todo:', err.message);
+//     res.status(500).json({ message: 'Failed to add todo' });
+//   }
+// });
+////////////////////////////////////////////////////////////////////////////////////
+
+
 // Add new todo
 app.post('/todos', authenticateJWT, async (req, res) => {
   const { content } = req.body;
@@ -235,7 +235,7 @@ app.delete('/delete-user/:id', authenticateJWT, requireAdmin, async (req, res) =
   }
 });
 
-const serialize = require('serialize-javascript');
+const serializejs = require('serialize-javascript');
 
 app.get('/serialize-demo', (req, res) => {
   const xssFunction = () => {
@@ -243,7 +243,7 @@ app.get('/serialize-demo', (req, res) => {
   };
 
   // serialize-javascript@2.1.1 will escape this properly
-  const script = `<script>(${serialize(xssFunction, { isJSON: false })})();</script>`;
+  const script = `<script>(${serializejs(xssFunction, { isJSON: false })})();</script>`;
 
   const html = `
     <html>
@@ -260,41 +260,28 @@ app.get('/serialize-demo', (req, res) => {
   res.send(html);
 });
 
-// ========== PATCHED: Secure Deserialization ==========
-// Accepts only a plain JSON object with a known schema
+// ================= INSECURE DESERIALIZATION DEMO =================
+// Route: POST /deserialize
+// Expects body: { "data": "{\"exploit\":\"_$$ND_FUNC$$_function(){ console.log('HACKED'); }\"}" }
+
 app.post('/deserialize', (req, res) => {
   try {
     const { data } = req.body;
-    logEvent(`Incoming deserialization request: ${data}`);
 
-    const parsed = JSON.parse(data);
+    // 🚨 INSECURE: Deserializing untrusted user input
+    const obj = serialize.unserialize(data);
 
-    if (typeof parsed !== 'object' || parsed === null) {
-      logEvent('Rejected: Invalid object structure');
-      return res.status(400).json({ error: 'Invalid object structure' });
+    if (typeof obj.exploit === 'function') {
+      obj.exploit(); // If the payload includes a function, this will run!
     }
 
-    const allowedKeys = ['name', 'message'];
-    const keys = Object.keys(parsed);
-
-    for (const key of keys) {
-      if (!allowedKeys.includes(key)) {
-        logEvent(`Rejected: Unexpected key "${key}"`);
-        return res.status(400).json({ error: `Unexpected key: ${key}` });
-      }
-    }
-
-    logEvent('Deserialization accepted and processed successfully');
-    res.json({
-      message: 'Deserialized safely',
-      data: parsed
-    });
-
+    res.send(`Deserialized object: ${JSON.stringify(obj)}`);
   } catch (err) {
-    logEvent(`Deserialization error: ${err.message}`);
-    res.status(400).json({ error: 'Failed to safely parse input' });
+    console.error('Deserialization error:', err.message);
+    res.status(500).send('Deserialization failed.');
   }
 });
+
 
 // Server start
 app.listen(PORT, () => {

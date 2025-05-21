@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const logPath = path.join(__dirname, 'log.txt');
+const logPath = path.join(__dirname, '..', 'log.txt');
 
 function logEvent(message) {
   const timestamp = new Date().toISOString();
