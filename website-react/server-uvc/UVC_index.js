@@ -1,38 +1,17 @@
-
 const express = require('express');
 const cors = require('cors');
 const initDatabase = require('./initDB');
 const { Pool } = require('pg');
 require('dotenv').config();
 const logEvent = require('./logger');
-const bcrypt = require('bcrypt');
-const SALT_ROUNDS = 10;
-const { XMLParser } = require('fast-xml-parser');
-const xmlParser = new XMLParser({ ignoreAttributes: false, processEntities: false });
+
+
 const app = express();
 const PORT = process.env.PORT || 5000;
-
-app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: ["'self'"], // Allow resources from the same origin
-      scriptSrc: ["'self'", "'unsafe-inline'"], // Allow inline scripts (if necessary)
-      styleSrc: ["'self'", "'unsafe-inline'"], // Allow inline styles (if necessary)
-      imgSrc: ["'self'", "data:"], // Allow images from the same origin and data URIs
-      connectSrc: ["'self'", "http://localhost:5000"], // Allow API requests to the backend
-      fontSrc: ["'self'", "https://fonts.googleapis.com"], // Allow fonts from Google Fonts
-      objectSrc: ["'none'"], // Disallow <object>, <embed>, and <applet> elements
-      frameSrc: ["'none'"], // Disallow iframes
-    },
-  })
-);
 
 // Middleware
 app.use(cors());
 app.use(express.json()); // Parses incoming JSON requests
-app.use(express.urlencoded({ extended: true }));
-
-
 
 // Init DB (create database + users table if needed)
 initDatabase();
@@ -69,27 +48,6 @@ app.post('/register', async (req, res) => {
 });
 
 // ======================= LOGIN =======================
-// Update Password
-app.put('/users/:username', async (req, res) => {
-  const { username } = req.params;
-  const { newPass } = req.body;
-
-  try {
-    const hashedPass = await bcrypt.hash(newPass, SALT_ROUNDS);
-    console.log(hashedPass);
-    await pool.query(
-      'UPDATE users SET password = $1 WHERE username = $2',
-      [hashedPass, username]
-    );
-
-    logEvent(`Password updated for "${username}"`);
-    res.json({ message: 'Password updated successfully' });
-  } catch (err) {
-    console.error('Error updating password:', err.message);
-    res.status(500).json({ message: 'Failed to update password' });
-  }
-});
-
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
@@ -127,6 +85,25 @@ app.get('/todos/:userId', async (req, res) => {
   }
 });
 
+
+
+/////////////////////ADDING SECTION THAT WOULD ALLOW SQL INJECTION ATTACK THEN COMMENTING OUT///////////////////////
+// Add new todo
+// app.post('/todos', async (req, res) => {
+//   const { user_id, content } = req.body;
+//   try {
+//     // Directly interpolate user input into the query string (vulnerable to SQL injection)
+//     const query = `INSERT INTO todos (user_id, content) VALUES (${user_id}, '${content}')`;
+//     await pool.query(query);
+
+//     logEvent(`User ${user_id} added a TODO: "${content}"`);
+//     res.status(201).json({ message: 'Todo added' });
+//   } catch (err) {
+//     console.error('Error adding todo:', err.message);
+//     res.status(500).json({ message: 'Failed to add todo' });
+//   }
+// });
+////////////////////////////////////////////////////////////////////////////////////
 
 
 // Add new todo
@@ -198,47 +175,31 @@ app.delete('/delete-user/:id', async (req, res) => {
   }
 });
 
-app.post('/edit-todo-xml', express.text({ type: 'application/xml' }), async (req, res) => {
-  try {
-    const parsed = xmlParser.parse(req.body);
-    const id = parsed?.todo?.id;
-    const content = parsed?.todo?.content;
-
-    if (!id || !content) {
-      return res.status(400).json({ message: 'Invalid XML: missing id or content' });
-    }
-
-    await pool.query('UPDATE todos SET content = $1 WHERE id = $2', [content, id]);
-
-    logEvent(`Todo ID ${id} updated via XML`);
-    res.json({ message: 'Todo updated via XML' });
-  } catch (err) {
-    console.error('XML update failed:', err.message);
-    res.status(500).json({ message: 'Failed to update via XML' });
-  }
-  
 const serialize = require('serialize-javascript');
 
 app.get('/serialize-demo', (req, res) => {
+  // Malicious function (could come from unsafe dynamic content in real apps)
   const xssFunction = () => {
-    alert('🚨 This should not run');
+    alert('🚨 XSS via serialize-javascript function');
   };
 
-  // serialize-javascript@2.1.1 will escape this properly
+  // Vulnerable serialization of function
   const script = `<script>(${serialize(xssFunction, { isJSON: false })})();</script>`;
 
   const html = `
     <html>
-      <head><title>Safe Serialize Demo</title></head>
+      <head><title>serialize-javascript XSS Demo</title></head>
       <body>
-        <h2>Serialized output (secure)</h2>
+        <h1>Vulnerable Function Injection Demo</h1>
         ${script}
-        <p>This function should appear as a string and not execute.</p>
+        <p>If this were vulnerable, an alert would appear in the browser.</p>
       </body>
     </html>
   `;
 
-  console.log('[SECURE] serialize-javascript version:', require('serialize-javascript/package.json').version);
+  console.log('[DEBUG] serialize version:', require('serialize-javascript/package.json').version);
+  console.log('[DEBUG] Rendered HTML:\n', html);
+
   res.send(html);
 });
 
