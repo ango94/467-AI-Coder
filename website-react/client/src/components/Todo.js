@@ -10,7 +10,6 @@ function TodoPage() {
   const token = localStorage.getItem('token');
   const user = token ? jwtDecode(token) : null;
   const userId = user?.id;
-
   const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState('');
   const [editing, setEditing] = useState(null);
