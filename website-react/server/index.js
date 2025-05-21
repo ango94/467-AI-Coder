@@ -63,7 +63,7 @@ app.put('/users/:username', async (req, res) => {
       [hashedPass, username]
     );
 
-    logEvent(`Password updated for "${username}"`);
+    logEvent(`Password updated for user ID: ${user.id}`);
     res.json({ message: 'Password updated successfully' });
   } catch (err) {
     console.error('Error updating password:', err.message);
