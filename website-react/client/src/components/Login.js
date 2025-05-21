@@ -14,6 +14,7 @@ function Login() {
     try {
       const res = await axios.post('http://localhost:5000/login', { username, password });
       localStorage.setItem('user', JSON.stringify(res.data));
+      setUsername(res.data); // Trigger re-render in App
       navigate(res.data.role === 'admin' ? '/admin' : '/todo');
     } catch (err) {
       setError('Invalid username or password');

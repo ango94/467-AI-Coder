@@ -5,7 +5,8 @@ const initDatabase = require('./initDB');
 const { Pool } = require('pg');
 require('dotenv').config();
 const logEvent = require('./logger');
-
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 const helmet = require('helmet');
 
 const app = express();
@@ -51,19 +52,15 @@ app.post('/register', async (req, res) => {
   const { username, password, role } = req.body;
 
   try {
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
     await pool.query(
       'INSERT INTO users (username, password, role) VALUES ($1, $2, $3)',
-      [username, password, role || 'user']
+      [username, hashedPassword, role]
     );
-
-    const result = await pool.query('SELECT * FROM users');
-    console.table(result.rows);
-
-    logEvent(`User registered: ${username}`);
     res.status(201).json({ success: true });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, error: 'Registration failed' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false });
   }
 });
 
@@ -72,17 +69,18 @@ app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    const result = await pool.query(
-      'SELECT * FROM users WHERE username = $1 AND password = $2',
-      [username, password]
-    );
-
+    const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
     if (result.rows.length === 1) {
       const user = result.rows[0];
-      res.status(200).json({ success: true, id: user.id, username: user.username, role: user.role });
-    } else {
-      res.status(401).json({ success: false, error: 'Invalid credentials' });
+      const isMatch = password === user.password;
+
+      console.log(isMatch)
+      if (isMatch) {
+        return res.status(200).json({ success: true, id: user.id, username: user.username, role: user.role });
+      }
     }
+    res.status(401).json({ success: false, error: 'Invalid credentials' });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false });

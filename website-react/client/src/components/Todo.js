@@ -6,8 +6,8 @@ import './Todo.css'; // Import the custom CSS file
 
 function TodoPage() {
   const navigate = useNavigate();
-  const user = localStorage.getItem('user');  //making this change because it was getItem(user_id) but login sets user object
-  const userId = user.id
+  const user = JSON.parse(localStorage.getItem('user'));
+  const userId = user?.id;
   const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState('');
   const [editing, setEditing] = useState(null);
