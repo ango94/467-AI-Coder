@@ -23,14 +23,12 @@ function TodoPage() {
     }
   }, [userId, navigate]);
 
-  // Fetch all todos for the logged-in user
   const fetchTodos = () => {
     axios.get(`http://localhost:5000/todos/${userId}`)
       .then(res => setTodos(res.data))
       .catch(err => console.error('Failed to fetch todos:', err));
   };
 
-  // Add a new todo item
   const addTodo = async () => {
     if (!newTodo.trim()) return;
     try {
@@ -42,6 +40,9 @@ function TodoPage() {
       fetchTodos();
     } catch (err) {
       console.error('Add todo failed:', err);
+      if (!err.response) {
+        console.error('Possible network issue or server is down');
+      }
     }
   };
 
