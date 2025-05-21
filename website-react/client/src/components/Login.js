@@ -13,7 +13,6 @@ function Login() {
     e.preventDefault();
     try {
       const res = await axios.post('http://localhost:5000/login', { username, password });
-      console.log('setting user data:', JSON.stringify(res.data));
       localStorage.setItem('user', JSON.stringify(res.data));
       navigate(res.data.role === 'admin' ? '/admin' : '/todo');
     } catch (err) {
