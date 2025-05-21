@@ -1,4 +1,3 @@
-
 const express = require('express');
 const cors = require('cors');
 const initDatabase = require('./initDB');
@@ -6,32 +5,13 @@ const { Pool } = require('pg');
 require('dotenv').config();
 const logEvent = require('./logger');
 
-const helmet = require('helmet');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: ["'self'"], // Allow resources from the same origin
-      scriptSrc: ["'self'", "'unsafe-inline'"], // Allow inline scripts (if necessary)
-      styleSrc: ["'self'", "'unsafe-inline'"], // Allow inline styles (if necessary)
-      imgSrc: ["'self'", "data:"], // Allow images from the same origin and data URIs
-      connectSrc: ["'self'", "http://localhost:5000"], // Allow API requests to the backend
-      fontSrc: ["'self'", "https://fonts.googleapis.com"], // Allow fonts from Google Fonts
-      objectSrc: ["'none'"], // Disallow <object>, <embed>, and <applet> elements
-      frameSrc: ["'none'"], // Disallow iframes
-    },
-  })
-);
-
 // Middleware
 app.use(cors());
 app.use(express.json()); // Parses incoming JSON requests
-app.use(express.urlencoded({ extended: true }));
-
-
 
 // Init DB (create database + users table if needed)
 initDatabase();
@@ -107,6 +87,25 @@ app.get('/todos/:userId', async (req, res) => {
 
 
 
+/////////////////////ADDING SECTION THAT WOULD ALLOW SQL INJECTION ATTACK THEN COMMENTING OUT///////////////////////
+// Add new todo
+// app.post('/todos', async (req, res) => {
+//   const { user_id, content } = req.body;
+//   try {
+//     // Directly interpolate user input into the query string (vulnerable to SQL injection)
+//     const query = `INSERT INTO todos (user_id, content) VALUES (${user_id}, '${content}')`;
+//     await pool.query(query);
+
+//     logEvent(`User ${user_id} added a TODO: "${content}"`);
+//     res.status(201).json({ message: 'Todo added' });
+//   } catch (err) {
+//     console.error('Error adding todo:', err.message);
+//     res.status(500).json({ message: 'Failed to add todo' });
+//   }
+// });
+////////////////////////////////////////////////////////////////////////////////////
+
+
 // Add new todo
 app.post('/todos', async (req, res) => {
   const { user_id, content } = req.body;
@@ -179,25 +178,28 @@ app.delete('/delete-user/:id', async (req, res) => {
 const serialize = require('serialize-javascript');
 
 app.get('/serialize-demo', (req, res) => {
+  // Malicious function (could come from unsafe dynamic content in real apps)
   const xssFunction = () => {
-    alert('🚨 This should not run');
+    alert('🚨 XSS via serialize-javascript function');
   };
 
-  // serialize-javascript@2.1.1 will escape this properly
+  // Vulnerable serialization of function
   const script = `<script>(${serialize(xssFunction, { isJSON: false })})();</script>`;
 
   const html = `
     <html>
-      <head><title>Safe Serialize Demo</title></head>
+      <head><title>serialize-javascript XSS Demo</title></head>
       <body>
-        <h2>Serialized output (secure)</h2>
+        <h1>Vulnerable Function Injection Demo</h1>
         ${script}
-        <p>This function should appear as a string and not execute.</p>
+        <p>If this were vulnerable, an alert would appear in the browser.</p>
       </body>
     </html>
   `;
 
-  console.log('[SECURE] serialize-javascript version:', require('serialize-javascript/package.json').version);
+  console.log('[DEBUG] serialize version:', require('serialize-javascript/package.json').version);
+  console.log('[DEBUG] Rendered HTML:\n', html);
+
   res.send(html);
 });
 
