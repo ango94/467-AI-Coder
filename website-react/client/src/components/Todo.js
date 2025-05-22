@@ -1,12 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import Navbar from './Navbar';
-import './Todo.css';
+import { jwtDecode } from 'jwt-decode';
+import axios from '../axios';
+import Navbar from './Navbar'; // Import the Navbar component
+import './Todo.css'; // Import the custom CSS file
 
 function TodoPage() {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user'));
+  const token = localStorage.getItem('token');
+  const user = token ? jwtDecode(token) : null;
   const userId = user?.id;
   const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState('');
@@ -15,45 +17,34 @@ function TodoPage() {
   const [editXmlMode, setEditXmlMode] = useState(false);
   const [xmlContent, setXmlContent] = useState('');
 
+  const refreshTodos = useCallback(() => {
+    if (!userId) return;
+    axios.get(`/todos/${userId}`)
+      .then(res => setTodos(res.data))
+      .catch(err => console.error('Failed to fetch todos:', err));
+  }, [userId]);
+
   useEffect(() => {
     if (!userId) {
       navigate('/');
     } else {
       fetchTodos();
     }
-  }, [userId, navigate]);
-
-  const fetchTodos = () => {
-    axios.get(`http://localhost:5000/todos/${userId}`)
-      .then(res => setTodos(res.data))
-      .catch(err => console.error('Failed to fetch todos:', err));
-  };
+  }, [token, userId, navigate, refreshTodos]);
 
   const addTodo = async () => {
     if (!newTodo.trim()) return;
-    try {
-      await axios.post('http://localhost:5000/todos', {
-        user_id: userId,
-        content: newTodo
-      });
-      setNewTodo('');
-      fetchTodos();
-    } catch (err) {
-      console.error('Add todo failed:', err);
-      if (!err.response) {
-        console.error('Possible network issue or server is down');
-      }
-    }
+    await axios.post('/todos', {
+      content: newTodo
+    });
+    setNewTodo('');
+    refreshTodos();
   };
 
   // Delete a todo item by ID
   const deleteTodo = async (id) => {
-    try {
-      await axios.delete(`http://localhost:5000/todos/${id}`);
-      fetchTodos();
-    } catch (err) {
-      console.error('Delete todo failed:', err);
-    }
+    await axios.delete(`/todos/${id}`);
+    refreshTodos();
   };
 
   // Start editing a todo, initialize edit states including XML content

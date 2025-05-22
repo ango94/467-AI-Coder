@@ -1,25 +1,42 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axios from '../axios';
+import { jwtDecode } from 'jwt-decode';
 import './Login.css'; // Import the custom CSS file
 
 function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [error, setErrorMsg] = useState('');
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setErrorMsg('');
+
     try {
-      const res = await axios.post('http://localhost:5000/login', { username, password });
-      localStorage.setItem('user', JSON.stringify(res.data));
-      setUsername(res.data); // Trigger re-render in App
-      navigate(res.data.role === 'admin' ? '/admin' : '/todo');
+      const response = await axios.post('/login', { username, password });
+      const token = response.data.token;
+
+      // Save token
+      localStorage.setItem('token', token);
+
+      // Decode token to get role
+      const decoded = jwtDecode(token);
+      const role = decoded.role;
+
+      // Navigate based on role
+      navigate(role === 'admin' ? '/admin' : '/todo');
     } catch (err) {
-      setError('Invalid username or password');
+      if (err.response?.status === 401) {
+        setErrorMsg('Invalid username or password');
+      } else {
+        setErrorMsg('Server error. Please try again later.');
+      }
+      console.error('Login error:', err);
     }
   };
+
 
   return (
     <div className="login-container">

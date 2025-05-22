@@ -1,56 +1,32 @@
 const express = require('express');
 const cors = require('cors');
-const helmet = require('helmet'); // <-- Added helmet require
 const initDatabase = require('./initDB');
 const { Pool } = require('pg');
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const logEvent = require('./logger');
-const bcrypt = require('bcrypt');
-const SALT_ROUNDS = 10;
-const { XMLParser } = require('fast-xml-parser');
-const xmlParser = new XMLParser({ ignoreAttributes: false, processEntities: false });
-const serialize = require('serialize-javascript'); // Moved require here
+const serialize = require('node-serialize');  // 🚨 Insecure
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Security middleware
-app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:"],
-      connectSrc: ["'self'", "http://localhost:5000"],
-      fontSrc: ["'self'", "https://fonts.googleapis.com"],
-      objectSrc: ["'none'"],
-      frameSrc: ["'none'"],
-    },
-  })
-);
+// Middleware
+app.use(cors());
+app.use(express.json()); // Parses incoming JSON requests
 
-// CORS with origin allowed for frontend (adjust if your frontend URL differs)
-app.use(cors({ origin: 'http://localhost:3000' }));
 
-// Body parsers
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Initialize DB (create tables etc.)
+// Init DB (create database + users table if needed)
 initDatabase();
 
-// DB connection pool
+// DB pool
 const pool = new Pool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
-  database: process.env.DB_NAME,
+  database: process.env.DB_NAME
 });
 
-// ====== REGISTER ======
 // Global request logger
 app.use((req, res, next) => {
   const ip = req.ip || req.connection.remoteAddress;
@@ -97,8 +73,6 @@ app.post('/register', async (req, res) => {
   const role = 'user';
 
   try {
-    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-
     await pool.query(
       'INSERT INTO users (username, password, role) VALUES ($1, $2, $3)',
       [username, password, role]
@@ -111,14 +85,14 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// ====== LOGIN ======
+// ======================= LOGIN =======================
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
   try {
     const result = await pool.query(
-      'SELECT * FROM users WHERE username = $1',
-      [username]
+      'SELECT * FROM users WHERE username = $1 AND password = $2',
+      [username, password]
     );
 
     if (result.rows.length === 1) {
@@ -135,7 +109,6 @@ app.post('/login', async (req, res) => {
     res.status(500).json({ success: false });
   }
 });
-
 
 // ======================= TODOS =======================
 // Get todos for a user by user ID
@@ -157,16 +130,35 @@ app.get('/todos/:userId', authenticateJWT, async (req, res) => {
 
 
 
+/////////////////////ADDING SECTION THAT WOULD ALLOW SQL INJECTION ATTACK THEN COMMENTING OUT///////////////////////
+// Add new todo
+// app.post('/todos', async (req, res) => {
+//   const { user_id, content } = req.body;
+//   try {
+//     // Directly interpolate user input into the query string (vulnerable to SQL injection)
+//     const query = `INSERT INTO todos (user_id, content) VALUES (${user_id}, '${content}')`;
+//     await pool.query(query);
+
+//     logEvent(`User ${user_id} added a TODO: "${content}"`);
+//     res.status(201).json({ message: 'Todo added' });
+//   } catch (err) {
+//     console.error('Error adding todo:', err.message);
+//     res.status(500).json({ message: 'Failed to add todo' });
+//   }
+// });
+////////////////////////////////////////////////////////////////////////////////////
+
+
 // Add new todo
 app.post('/todos', authenticateJWT, async (req, res) => {
   const { content } = req.body;
   const user_id = req.user.id;
+
   try {
     await pool.query(
       'INSERT INTO todos (user_id, content) VALUES ($1, $2)',
       [user_id, content]
     );
-
     logEvent(`User ${user_id} added a TODO: "${content}"`);
     res.status(201).json({ message: 'Todo added' });
   } catch (err) {
@@ -197,7 +189,6 @@ app.put('/todos/:id', authenticateJWT, async (req, res) => {
     res.status(500).json({ message: 'Failed to update todo' });
   }
 });
-
 
 // Delete todo
 app.delete('/todos/:id', authenticateJWT, async (req, res) => {
@@ -244,35 +235,15 @@ app.delete('/delete-user/:id', authenticateJWT, requireAdmin, async (req, res) =
   }
 });
 
-// ====== UPDATE TODO VIA XML ======
-app.post('/edit-todo-xml', express.text({ type: 'application/xml' }), async (req, res) => {
-  try {
-    const parsed = xmlParser.parse(req.body);
-    const id = parsed?.todo?.id;
-    const content = parsed?.todo?.content;
+const serializejs = require('serialize-javascript');
 
-    if (!id || !content) {
-      return res.status(400).json({ message: 'Invalid XML: missing id or content' });
-    }
-
-    await pool.query('UPDATE todos SET content = $1 WHERE id = $2', [content, id]);
-
-    logEvent(`Todo ID ${id} updated via XML`);
-    res.json({ message: 'Todo updated via XML' });
-  } catch (err) {
-    console.error('XML update failed:', err.message);
-    res.status(500).json({ message: 'Failed to update via XML' });
-  }
-});
-
-// ====== SAFE SERIALIZE DEMO ======
 app.get('/serialize-demo', (req, res) => {
   const xssFunction = () => {
     alert('🚨 This should not run');
   };
 
-  // serialize-javascript escapes function properly
-  const script = `<script>(${serialize(xssFunction, { isJSON: false })})();</script>`;
+  // serialize-javascript@2.1.1 will escape this properly
+  const script = `<script>(${serializejs(xssFunction, { isJSON: false })})();</script>`;
 
   const html = `
     <html>
@@ -289,42 +260,28 @@ app.get('/serialize-demo', (req, res) => {
   res.send(html);
 });
 
+// ================= INSECURE DESERIALIZATION DEMO =================
+// Route: POST /deserialize
+// Expects body: { "data": "{\"exploit\":\"_$$ND_FUNC$$_function(){ console.log('HACKED'); }\"}" }
 
-// ========== PATCHED: Secure Deserialization ==========
-// Accepts only a plain JSON object with a known schema
 app.post('/deserialize', (req, res) => {
   try {
     const { data } = req.body;
-    logEvent(`Incoming deserialization request: ${data}`);
 
-    const parsed = JSON.parse(data);
+    // 🚨 INSECURE: Deserializing untrusted user input
+    const obj = serialize.unserialize(data);
 
-    if (typeof parsed !== 'object' || parsed === null) {
-      logEvent('Rejected: Invalid object structure');
-      return res.status(400).json({ error: 'Invalid object structure' });
+    if (typeof obj.exploit === 'function') {
+      obj.exploit(); // If the payload includes a function, this will run!
     }
 
-    const allowedKeys = ['name', 'message'];
-    const keys = Object.keys(parsed);
-
-    for (const key of keys) {
-      if (!allowedKeys.includes(key)) {
-        logEvent(`Rejected: Unexpected key "${key}"`);
-        return res.status(400).json({ error: `Unexpected key: ${key}` });
-      }
-    }
-
-    logEvent('Deserialization accepted and processed successfully');
-    res.json({
-      message: 'Deserialized safely',
-      data: parsed
-    });
-
+    res.send(`Deserialized object: ${JSON.stringify(obj)}`);
   } catch (err) {
-    logEvent(`Deserialization error: ${err.message}`);
-    res.status(400).json({ error: 'Failed to safely parse input' });
+    console.error('Deserialization error:', err.message);
+    res.status(500).send('Deserialization failed.');
   }
 });
+
 
 // Server start
 app.listen(PORT, () => {

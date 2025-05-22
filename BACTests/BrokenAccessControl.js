@@ -1,4 +1,4 @@
-const axios = require('axios');
+import axios from 'axios';
 const baseURL = 'http://localhost:5000'; // or whatever port you're running on
 
 const attackerCredentials = {
