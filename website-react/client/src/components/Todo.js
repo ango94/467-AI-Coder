@@ -1,16 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
+import axios from '../axios';
 import Navbar from './Navbar'; // Import the Navbar component
 import './Todo.css'; // Import the custom CSS file
 
 function TodoPage() {
   const navigate = useNavigate();
-  const userId = localStorage.getItem('user_id');
+  const token = localStorage.getItem('token');
+  const user = token ? jwtDecode(token) : null;
+  const userId = user?.id;
   const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState('');
   const [editing, setEditing] = useState(null);
   const [editContent, setEditContent] = useState('');
+
+  const refreshTodos = useCallback(() => {
+    if (!userId) return;
+    axios.get(`/todos/${userId}`)
+      .then(res => setTodos(res.data))
+      .catch(err => console.error('Failed to fetch todos:', err));
+  }, [userId]);
 
   useEffect(() => {
     if (!userId) {
@@ -18,18 +28,11 @@ function TodoPage() {
     } else {
       refreshTodos();
     }
-  }, [userId, navigate]);
-
-  const refreshTodos = () => {
-    axios.get(`http://localhost:5000/todos/${userId}`)
-      .then(res => setTodos(res.data))
-      .catch(err => console.error('Failed to fetch todos:', err));
-  };
+  }, [token, userId, navigate, refreshTodos]);
 
   const addTodo = async () => {
     if (!newTodo.trim()) return;
-    await axios.post('http://localhost:5000/todos', {
-      user_id: userId,
+    await axios.post('/todos', {
       content: newTodo
     });
     setNewTodo('');
@@ -37,7 +40,7 @@ function TodoPage() {
   };
 
   const deleteTodo = async (id) => {
-    await axios.delete(`http://localhost:5000/todos/${id}`);
+    await axios.delete(`/todos/${id}`);
     refreshTodos();
   };
 
@@ -47,7 +50,7 @@ function TodoPage() {
   };
 
   const updateTodo = async () => {
-    await axios.put(`http://localhost:5000/todos/${editing}`, {
+    await axios.put(`/todos/${editing}`, {
       content: editContent
     });
     setEditing(null);

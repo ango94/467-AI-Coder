@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js",
-    "start:bac": "nodemon BAC_index.js",
-    "start:ucv": "nodemon UCV_index.js",
+    "start": "nodemon UVC_index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -14,12 +12,12 @@
   "description": "",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "body-parser": "1.13.3",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "mongoose": "^8.13.2",
-    "node-serialize": "^0.0.4",
     "pg": "^8.14.1",
-    "serialize-javascript": "^2.1.1"
+    "serialize-javascript": "^1.6.1"
   }
 }

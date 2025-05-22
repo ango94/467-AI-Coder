@@ -1,32 +1,68 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
+import axios from '../axios';
+import Navbar from './Navbar';
+import './Todo.css';
 
 function AdminDashboard() {
+  const navigate = useNavigate();
+  const token = localStorage.getItem('token');
+  const user = token ? jwtDecode(token) : null;
+  const isAdmin = user?.role === 'admin';
+
   const [users, setUsers] = useState([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    axios.get('http://localhost:5000/users')  // 🚨 No access control check!
-      .then(res => setUsers(res.data))
-      .catch(err => console.error("Access failed", err));
-  }, []);
+    if (!token || !isAdmin) {
+      navigate('/');
+    } else {
+      fetchUsers();
+    }
+  }, [token, isAdmin, navigate]);
 
-  const deleteUser = (id) => {
-    axios.delete(`http://localhost:5000/delete-user/${id}`)
-      .then(() => alert("User deleted (no access check!)"))
-      .catch(err => alert("Failed to delete user"));
+  const fetchUsers = async () => {
+    try {
+      const res = await axios.get('/users');
+      setUsers(res.data);
+    } catch (err) {
+      console.error('Failed to fetch users:', err);
+      setError('Failed to load user list.');
+    }
+  };
+
+  const deleteUser = async (id) => {
+    try {
+      await axios.delete(`/delete-user/${id}`);
+      fetchUsers(); // refresh list
+    } catch (err) {
+      console.error('Failed to delete user:', err);
+      setError('Delete failed.');
+    }
   };
 
   return (
     <div>
-      <h2>Admin Panel (Broken Access Control)</h2>
-      <ul>
-        {users.map(user => (
-          <li key={user.id}>
-            {user.username}
-            <button onClick={() => deleteUser(user.id)}>Delete</button>
-          </li>
-        ))}
-      </ul>
+      <Navbar />
+      <div className="todo-container">
+        <div className="todo-header">
+          <h2>Admin Dashboard</h2>
+        </div>
+
+        {error && <p className="error-message">{error}</p>}
+
+        <ul className="todo-list">
+          {users.map(user => (
+            <li key={user.id}>
+              {user.username}
+              <button className="delete" onClick={() => deleteUser(user.id)}>
+                Delete
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
