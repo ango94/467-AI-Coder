@@ -97,11 +97,11 @@ app.post('/register', async (req, res) => {
   const role = 'user';
 
   try {
-    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
+    const hashedPass = await (bcrypt.hash(password, SALT_ROUNDS))
     await pool.query(
       'INSERT INTO users (username, password, role) VALUES ($1, $2, $3)',
-      [username, password, role]
+      [username, hashedPass, role || 'user']
     );
     logEvent(`User registered: ${username}`);
     res.status(201).json({ success: true });
@@ -110,17 +110,37 @@ app.post('/register', async (req, res) => {
     res.status(500).json({ success: false, error: 'Registration failed' });
   }
 });
-
-// ====== LOGIN ======
-app.post('/login', async (req, res) => {
-  const { username, password } = req.body;
+// ======================= LOGIN =======================
+// Update Password
+app.put('/users/:username', async (req, res) => {
+  const { username } = req.params;
+  const { newPass } = req.body;
 
   try {
-    const result = await pool.query(
-      'SELECT * FROM users WHERE username = $1',
-      [username]
+    const hashedPass = await bcrypt.hash(newPass, SALT_ROUNDS);
+    console.log(hashedPass);
+    await pool.query(
+      'UPDATE users SET password = $1 WHERE username = $2',
+      [hashedPass, username]
     );
 
+    logEvent(`Password updated for user ID: ${user.id}`);
+    res.json({ message: 'Password updated successfully' });
+  } catch (err) {
+    console.error('Error updating password:', err.message);
+    res.status(500).json({ message: 'Failed to update password' });
+  }
+});
+
+app.post('/login', async (req, res) => {
+  const result = await pool.query(
+    'SELECT * FROM users WHERE username = $1',
+    [username]
+  );
+
+  if (result.rows.length === 1) {
+    const user = result.rows[0];
+    const isMatch = await bcrypt.compare(password, user.password);
     if (result.rows.length === 1) {
       const user = result.rows[0];
       const token = generateToken(user);
