@@ -44,7 +44,7 @@ async function initDatabase() {
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         username VARCHAR(45) UNIQUE NOT NULL,
-        password VARCHAR(45) NOT NULL,
+        password VARCHAR(255) NOT NULL,
         role TEXT DEFAULT 'user'
       );
     `);

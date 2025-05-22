@@ -99,6 +99,7 @@ app.post('/register', async (req, res) => {
   try {
 
     const hashedPass = await (bcrypt.hash(password, SALT_ROUNDS))
+    console.log(hashedPass);
     await pool.query(
       'INSERT INTO users (username, password, role) VALUES ($1, $2, $3)',
       [username, hashedPass, role || 'user']
@@ -133,6 +134,7 @@ app.put('/users/:username', async (req, res) => {
 });
 
 app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
   const result = await pool.query(
     'SELECT * FROM users WHERE username = $1',
     [username]
