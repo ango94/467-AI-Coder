@@ -28,7 +28,7 @@ function TodoPage() {
     if (!userId) {
       navigate('/');
     } else {
-      fetchTodos();
+      refreshTodos();
     }
   }, [token, userId, navigate, refreshTodos]);
 
@@ -78,7 +78,7 @@ function TodoPage() {
         content: editContent
       });
       cancelEditing();
-      fetchTodos();
+      refreshTodos();
     } catch (err) {
       console.error('Update todo failed:', err);
     }
@@ -91,7 +91,7 @@ function TodoPage() {
         headers: { 'Content-Type': 'application/xml' },
       });
       cancelEditing();
-      fetchTodos();
+      refreshTodos();
     } catch (err) {
       alert('XML Update Failed: ' + (err.response?.data?.message || err.message));
     }
