@@ -14,6 +14,8 @@ function TodoPage() {
   const [newTodo, setNewTodo] = useState('');
   const [editing, setEditing] = useState(null);
   const [editContent, setEditContent] = useState('');
+  const [editXmlMode, setEditXmlMode] = useState(false);
+  const [xmlContent, setXmlContent] = useState('');
 
   const refreshTodos = useCallback(() => {
     if (!userId) return;
@@ -39,28 +41,73 @@ function TodoPage() {
     refreshTodos();
   };
 
+  // Delete a todo item by ID
   const deleteTodo = async (id) => {
     await axios.delete(`/todos/${id}`);
     refreshTodos();
   };
 
+  // Start editing a todo, initialize edit states including XML content
   const startEditing = (todo) => {
     setEditing(todo.id);
     setEditContent(todo.content);
+    setEditXmlMode(false);
+    setXmlContent(
+      `<todo>\n  <id>${todo.id}</id>\n  <user_id>${todo.user_id}</user_id>\n  <content>${escapeXml(todo.content)}</content>\n</todo>`
+    );
   };
 
-  const updateTodo = async () => {
-    await axios.put(`/todos/${editing}`, {
-      content: editContent
+  // Escape XML special characters to avoid malformed XML
+  const escapeXml = (unsafe) => {
+    return unsafe.replace(/[<>&'"]/g, function (c) {
+      switch (c) {
+        case '<': return '&lt;';
+        case '>': return '&gt;';
+        case '&': return '&amp;';
+        case '\'': return '&apos;';
+        case '"': return '&quot;';
+        default: return c;
+      }
     });
+  };
+
+  // Save todo changes using JSON API (text mode)
+  const updateTodo = async () => {
+    try {
+      await axios.put(`http://localhost:5000/todos/${editing}`, {
+        content: editContent
+      });
+      cancelEditing();
+      refreshTodos();
+    } catch (err) {
+      console.error('Update todo failed:', err);
+    }
+  };
+
+  // Save todo changes using XML API (XML mode)
+  const updateTodoWithXML = async () => {
+    try {
+      await axios.post('http://localhost:5000/edit-todo-xml', xmlContent, {
+        headers: { 'Content-Type': 'application/xml' },
+      });
+      cancelEditing();
+      refreshTodos();
+    } catch (err) {
+      alert('XML Update Failed: ' + (err.response?.data?.message || err.message));
+    }
+  };
+
+  // Cancel editing and reset states
+  const cancelEditing = () => {
     setEditing(null);
     setEditContent('');
-    refreshTodos();
+    setXmlContent('');
+    setEditXmlMode(false);
   };
 
   return (
     <div>
-      <Navbar /> {/* Add the Navbar component */}
+      <Navbar />
       <div className="todo-container">
         <div className="add-todo">
           <input
@@ -76,17 +123,40 @@ function TodoPage() {
           {todos.map(todo => (
             <li key={todo.id}>
               {editing === todo.id ? (
-                <>
-                  <input
-                    value={editContent}
-                    onChange={(e) => setEditContent(e.target.value)}
-                  />
-                  <button onClick={updateTodo}>Save</button>
-                  <button onClick={() => setEditing(null)}>Cancel</button>
-                </>
+                <div className="edit-section">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={editXmlMode}
+                      onChange={(e) => setEditXmlMode(e.target.checked)}
+                    />{' '}
+                    Edit with XML
+                  </label>
+
+                  {editXmlMode ? (
+                    <>
+                      <textarea
+                        rows="8"
+                        cols="60"
+                        value={xmlContent}
+                        onChange={(e) => setXmlContent(e.target.value)}
+                      />
+                      <button onClick={updateTodoWithXML}>Save XML</button>
+                    </>
+                  ) : (
+                    <>
+                      <input
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                      />
+                      <button onClick={updateTodo}>Save</button>
+                    </>
+                  )}
+                  <button onClick={cancelEditing}>Cancel</button>
+                </div>
               ) : (
                 <>
-                  {todo.content}
+                  <span>{todo.content}</span>
                   <button onClick={() => startEditing(todo)}>Edit</button>
                   <button className="delete" onClick={() => deleteTodo(todo.id)}>Delete</button>
                 </>

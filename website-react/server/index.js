@@ -1,51 +1,56 @@
-
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet'); // <-- Added helmet require
 const initDatabase = require('./initDB');
 const { Pool } = require('pg');
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const logEvent = require('./logger');
-
-const helmet = require('helmet');
+const bcrypt = require('bcrypt');
+const SALT_ROUNDS = 10;
+const { XMLParser } = require('fast-xml-parser');
+const xmlParser = new XMLParser({ ignoreAttributes: false, processEntities: false });
+const serialize = require('serialize-javascript'); // Moved require here
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Security middleware
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
-      defaultSrc: ["'self'"], // Allow resources from the same origin
-      scriptSrc: ["'self'", "'unsafe-inline'"], // Allow inline scripts (if necessary)
-      styleSrc: ["'self'", "'unsafe-inline'"], // Allow inline styles (if necessary)
-      imgSrc: ["'self'", "data:"], // Allow images from the same origin and data URIs
-      connectSrc: ["'self'", "http://localhost:5000"], // Allow API requests to the backend
-      fontSrc: ["'self'", "https://fonts.googleapis.com"], // Allow fonts from Google Fonts
-      objectSrc: ["'none'"], // Disallow <object>, <embed>, and <applet> elements
-      frameSrc: ["'none'"], // Disallow iframes
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:"],
+      connectSrc: ["'self'", "http://localhost:5000"],
+      fontSrc: ["'self'", "https://fonts.googleapis.com"],
+      objectSrc: ["'none'"],
+      frameSrc: ["'none'"],
     },
   })
 );
 
-// Middleware
-app.use(cors());
-app.use(express.json()); // Parses incoming JSON requests
+// CORS with origin allowed for frontend (adjust if your frontend URL differs)
+app.use(cors({ origin: 'http://localhost:3000' }));
+
+// Body parsers
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
-
-// Init DB (create database + users table if needed)
+// Initialize DB (create tables etc.)
 initDatabase();
 
-// DB pool
+// DB connection pool
 const pool = new Pool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
-  database: process.env.DB_NAME
+  database: process.env.DB_NAME,
 });
 
+// ====== REGISTER ======
 // Global request logger
 app.use((req, res, next) => {
   const ip = req.ip || req.connection.remoteAddress;
@@ -92,6 +97,7 @@ app.post('/register', async (req, res) => {
   const role = 'user';
 
   try {
+
     const hashedPass = await (bcrypt.hash(password, SALT_ROUNDS))
     await pool.query(
       'INSERT INTO users (username, password, role) VALUES ($1, $2, $3)',
@@ -104,7 +110,6 @@ app.post('/register', async (req, res) => {
     res.status(500).json({ success: false, error: 'Registration failed' });
   }
 });
-
 // ======================= LOGIN =======================
 // Update Password
 app.put('/users/:username', async (req, res) => {
@@ -151,6 +156,7 @@ app.post('/login', async (req, res) => {
   }
 });
 
+
 // ======================= TODOS =======================
 // Get todos for a user by user ID
 app.get('/todos/:userId', authenticateJWT, async (req, res) => {
@@ -175,12 +181,12 @@ app.get('/todos/:userId', authenticateJWT, async (req, res) => {
 app.post('/todos', authenticateJWT, async (req, res) => {
   const { content } = req.body;
   const user_id = req.user.id;
-
   try {
     await pool.query(
       'INSERT INTO todos (user_id, content) VALUES ($1, $2)',
       [user_id, content]
     );
+
     logEvent(`User ${user_id} added a TODO: "${content}"`);
     res.status(201).json({ message: 'Todo added' });
   } catch (err) {
@@ -211,6 +217,7 @@ app.put('/todos/:id', authenticateJWT, async (req, res) => {
     res.status(500).json({ message: 'Failed to update todo' });
   }
 });
+
 
 // Delete todo
 app.delete('/todos/:id', authenticateJWT, async (req, res) => {
@@ -257,14 +264,34 @@ app.delete('/delete-user/:id', authenticateJWT, requireAdmin, async (req, res) =
   }
 });
 
-const serialize = require('serialize-javascript');
+// ====== UPDATE TODO VIA XML ======
+app.post('/edit-todo-xml', express.text({ type: 'application/xml' }), async (req, res) => {
+  try {
+    const parsed = xmlParser.parse(req.body);
+    const id = parsed?.todo?.id;
+    const content = parsed?.todo?.content;
 
+    if (!id || !content) {
+      return res.status(400).json({ message: 'Invalid XML: missing id or content' });
+    }
+
+    await pool.query('UPDATE todos SET content = $1 WHERE id = $2', [content, id]);
+
+    logEvent(`Todo ID ${id} updated via XML`);
+    res.json({ message: 'Todo updated via XML' });
+  } catch (err) {
+    console.error('XML update failed:', err.message);
+    res.status(500).json({ message: 'Failed to update via XML' });
+  }
+});
+
+// ====== SAFE SERIALIZE DEMO ======
 app.get('/serialize-demo', (req, res) => {
   const xssFunction = () => {
     alert('🚨 This should not run');
   };
 
-  // serialize-javascript@2.1.1 will escape this properly
+  // serialize-javascript escapes function properly
   const script = `<script>(${serialize(xssFunction, { isJSON: false })})();</script>`;
 
   const html = `
@@ -281,6 +308,7 @@ app.get('/serialize-demo', (req, res) => {
   console.log('[SECURE] serialize-javascript version:', require('serialize-javascript/package.json').version);
   res.send(html);
 });
+
 
 // ========== PATCHED: Secure Deserialization ==========
 // Accepts only a plain JSON object with a known schema
