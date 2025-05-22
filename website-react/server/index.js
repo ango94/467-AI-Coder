@@ -260,42 +260,6 @@ app.get('/serialize-demo', (req, res) => {
   res.send(html);
 });
 
-// ========== PATCHED: Secure Deserialization ==========
-// Accepts only a plain JSON object with a known schema
-app.post('/deserialize', (req, res) => {
-  try {
-    const { data } = req.body;
-    logEvent(`Incoming deserialization request: ${data}`);
-
-    const parsed = JSON.parse(data);
-
-    if (typeof parsed !== 'object' || parsed === null) {
-      logEvent('Rejected: Invalid object structure');
-      return res.status(400).json({ error: 'Invalid object structure' });
-    }
-
-    const allowedKeys = ['name', 'message'];
-    const keys = Object.keys(parsed);
-
-    for (const key of keys) {
-      if (!allowedKeys.includes(key)) {
-        logEvent(`Rejected: Unexpected key "${key}"`);
-        return res.status(400).json({ error: `Unexpected key: ${key}` });
-      }
-    }
-
-    logEvent('Deserialization accepted and processed successfully');
-    res.json({
-      message: 'Deserialized safely',
-      data: parsed
-    });
-
-  } catch (err) {
-    logEvent(`Deserialization error: ${err.message}`);
-    res.status(400).json({ error: 'Failed to safely parse input' });
-  }
-});
-
 // Server start
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
