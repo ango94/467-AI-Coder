@@ -138,6 +138,8 @@ app.post('/login', async (req, res) => {
     [username]
   );
 
+  try{
+
   if (result.rows.length === 1) {
     const user = result.rows[0];
     const isMatch = await bcrypt.compare(password, user.password);
@@ -150,12 +152,13 @@ app.post('/login', async (req, res) => {
       logEvent(`Login FAILURE: ${username}`);
       res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
-  } catch (err) {
+  } 
+}
+  catch (err) {
     logEvent(`Login ERROR for ${username}: ${err.message}`);
     res.status(500).json({ success: false });
   }
 });
-
 
 // ======================= TODOS =======================
 // Get todos for a user by user ID
