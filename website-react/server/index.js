@@ -139,22 +139,22 @@ app.post('/login', async (req, res) => {
     [username]
   );
 
-  try{
+  try {
 
-  if (result.rows.length === 1) {
-    const user = result.rows[0];
-    const isMatch = await bcrypt.compare(password, user.password);
     if (result.rows.length === 1) {
       const user = result.rows[0];
-      const token = generateToken(user);
-      logEvent(`Login SUCCESS: ${username}`);
-      res.status(200).json({ token });
-    } else {
-      logEvent(`Login FAILURE: ${username}`);
-      res.status(401).json({ success: false, error: 'Invalid credentials' });
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (result.rows.length === 1) {
+        const user = result.rows[0];
+        const token = generateToken(user);
+        logEvent(`Login SUCCESS: ${username}`);
+        res.status(200).json({ token });
+      } else {
+        logEvent(`Login FAILURE: ${username}`);
+        res.status(401).json({ success: false, error: 'Invalid credentials' });
+      }
     }
-  } 
-}
+  }
   catch (err) {
     logEvent(`Login ERROR for ${username}: ${err.message}`);
     res.status(500).json({ success: false });
