@@ -32,7 +32,8 @@ app.use(
 );
 
 // CORS with origin allowed for frontend (adjust if your frontend URL differs)
-app.use(cors({ origin: 'http://localhost:3000' }));
+// app.use(cors({ origin: 'http://localhost:3000' }));
+app.use(cors({ origin: '*' }));
 
 // Body parsers
 app.use(express.json());
