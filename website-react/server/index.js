@@ -11,6 +11,8 @@ const SALT_ROUNDS = 10;
 const { XMLParser } = require('fast-xml-parser');
 const xmlParser = new XMLParser({ ignoreAttributes: false, processEntities: false });
 const serialize = require('serialize-javascript'); // Moved require here
+const path = require('path');
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
