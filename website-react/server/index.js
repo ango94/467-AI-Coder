@@ -33,15 +33,15 @@ app.use(
   })
 );
 
-// Serve static files from the React frontend
-app.use(express.static(path.join(__dirname, '..', 'client', 'build')));
+// // Serve static files from the React frontend
+// app.use(express.static(path.join(__dirname, '..', 'client', 'build')));
 
-// Your API routes go here
+// // Your API routes go here
 
-// Catch-all: send back index.html for client-side routing
-app.get('/{*any}', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'client', 'build', 'index.html'));
-});
+// // Catch-all: send back index.html for client-side routing
+// app.get('/{*any}', (req, res) => {
+//   res.sendFile(path.join(__dirname, '..', 'client', 'build', 'index.html'));
+// });
 
 // CORS with origin allowed for frontend (adjust if your frontend URL differs)
 // app.use(cors({ origin: 'http://localhost:3000' }));
