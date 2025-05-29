@@ -37,7 +37,6 @@ app.use(
 app.use(express.static(path.join(__dirname, 'client/build')));
 
 // Your API routes go here
-app.use('/api', require('./routes/api'));
 
 // Catch-all: send back index.html for client-side routing
 app.get('*', (req, res) => {
