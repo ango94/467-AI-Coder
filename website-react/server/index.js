@@ -43,15 +43,20 @@ app.use(express.urlencoded({ extended: true }));
 initDatabase();
 
 // DB connection pool
+// const pool = new Pool({
+//   user: process.env.DB_USER,
+//   password: process.env.DB_PASSWORD,
+//   host: process.env.DB_HOST,
+//   port: process.env.DB_PORT,
+//   database: process.env.DB_NAME,
+//   connectionString: process.env.DATABASE_URL
+// });
 const pool = new Pool({
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  database: process.env.DB_NAME,
-  connectionString: process.env.DATABASE_URL
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
-
 // ====== REGISTER ======
 // Global request logger
 app.use((req, res, next) => {
@@ -141,22 +146,22 @@ app.post('/login', async (req, res) => {
     [username]
   );
 
-  try{
+  try {
 
-  if (result.rows.length === 1) {
-    const user = result.rows[0];
-    const isMatch = await bcrypt.compare(password, user.password);
     if (result.rows.length === 1) {
       const user = result.rows[0];
-      const token = generateToken(user);
-      logEvent(`Login SUCCESS: ${username}`);
-      res.status(200).json({ token });
-    } else {
-      logEvent(`Login FAILURE: ${username}`);
-      res.status(401).json({ success: false, error: 'Invalid credentials' });
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (result.rows.length === 1) {
+        const user = result.rows[0];
+        const token = generateToken(user);
+        logEvent(`Login SUCCESS: ${username}`);
+        res.status(200).json({ token });
+      } else {
+        logEvent(`Login FAILURE: ${username}`);
+        res.status(401).json({ success: false, error: 'Invalid credentials' });
+      }
     }
-  } 
-}
+  }
   catch (err) {
     logEvent(`Login ERROR for ${username}: ${err.message}`);
     res.status(500).json({ success: false });
