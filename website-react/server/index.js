@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path');
 const helmet = require('helmet');
 const cors = require('cors');
-const initDB = require('./db');
+const initDB = require('./initDB');
 const apiRouter = require('./routes/api');
 const logEvent = require('./logger');
 require('dotenv').config();
