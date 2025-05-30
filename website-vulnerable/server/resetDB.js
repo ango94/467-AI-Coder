@@ -16,6 +16,8 @@ async function resetDatabase() {
     console.log('⚠️ Dropping tables...');
     await client.query('DROP TABLE IF EXISTS todos');
     await client.query('DROP TABLE IF EXISTS users');
+      await client.query('DROP TABLE IF EXISTS todosv');
+    await client.query('DROP TABLE IF EXISTS usersv');
 
     console.log('✅ Tables dropped.');
     await client.end();

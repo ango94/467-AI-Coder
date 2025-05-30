@@ -10,13 +10,17 @@ const baseURL = 'http://localhost:5000/deserialize';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// 👇 Adjust this path if your project structure changes
-const hackedFile = path.join(__dirname, '../website-react/server/hacked.txt');
+const hackedPaths = [
+  path.join(__dirname, '../website-react/server/hacked.txt'),
+  path.join(__dirname, '../website-vulnerable/server/hacked.txt')
+];
 
 // Step 1: Clean up any existing hacked.txt
-if (fs.existsSync(hackedFile)) {
-  fs.unlinkSync(hackedFile);
-  console.log('🧹 Removed existing hacked.txt for a clean test');
+for (const p of hackedPaths) {
+  if (fs.existsSync(p)) {
+    fs.unlinkSync(p);
+    console.log(`🧹 Removed existing ${p}`);
+  }
 }
 
 // Step 2: Safe payload
@@ -57,13 +61,19 @@ const exploitPayload = {
 
   // Step 4: Check if hacked.txt was created
   console.log('\n🔍 Checking for hacked.txt...');
-  if (fs.existsSync(hackedFile)) {
-    const contents = fs.readFileSync(hackedFile, 'utf-8');
-    console.log('💥 File created! Contents:');
-    console.log('--------------------------');
-    console.log(contents);
-    console.log('--------------------------');
-  } else {
+  let found = false;
+  for (const p of hackedPaths) {
+    if (fs.existsSync(p)) {
+      const contents = fs.readFileSync(p, 'utf-8');
+      console.log(`💥 File created at ${p}`);
+      console.log('--------------------------');
+      console.log(contents);
+      console.log('--------------------------');
+      found = true;
+    }
+  }
+
+  if (!found) {
     console.log('✅ No file created. System appears secure.');
   }
 })();

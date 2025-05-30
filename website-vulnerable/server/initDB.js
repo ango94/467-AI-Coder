@@ -41,33 +41,33 @@ async function initDatabase() {
 
     // Create users table if it doesn't exist
     await projectClient.query(`
-      CREATE TABLE IF NOT EXISTS users (
+      CREATE TABLE IF NOT EXISTS usersv (
         id SERIAL PRIMARY KEY,
         username VARCHAR(45) UNIQUE NOT NULL,
         password VARCHAR(45) NOT NULL,
         role TEXT DEFAULT 'user'
       );
     `);
-    console.log("Table 'users' checked/created.");
+    console.log("Table 'usersv' checked/created.");
 
     await projectClient.query(`
-      CREATE TABLE IF NOT EXISTS todos (
+      CREATE TABLE IF NOT EXISTS todosv (
         id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL,
         content TEXT NOT NULL,
-        FOREIGN KEY (user_id) REFERENCES users(id)
+        FOREIGN KEY (user_id) REFERENCES usersv(id)
       );
     `);
-    console.log("Table 'todos' checked/created.");
+    console.log("Table 'todosv' checked/created.");
     
     // Insert test admin and user if they don’t already exist
-    const adminExists = await projectClient.query(`SELECT * FROM users WHERE username = 'admin'`);
-    const userExists = await projectClient.query(`SELECT * FROM users WHERE username = 'user1'`);
+    const adminExists = await projectClient.query(`SELECT * FROM usersv WHERE username = 'admin'`);
+    const userExists = await projectClient.query(`SELECT * FROM usersv WHERE username = 'user1'`);
     
     if (adminExists.rowCount === 0) {
       const hashedAdmin = 'admin123';
       await projectClient.query(
-        'INSERT INTO users (username, password, role) VALUES ($1, $2, $3)',
+        'INSERT INTO usersv (username, password, role) VALUES ($1, $2, $3)',
         ['admin', hashedAdmin, 'admin']
       );
       console.log('Admin user created');
@@ -76,12 +76,21 @@ async function initDatabase() {
     if (userExists.rowCount === 0) {
       const hashedUser = 'user123';
       await projectClient.query(
-        'INSERT INTO users (username, password, role) VALUES ($1, $2, $3)',
+        'INSERT INTO usersv (username, password, role) VALUES ($1, $2, $3)',
         ['user1', hashedUser, 'user']
       );
       console.log('Regular user created');
     }
+    
+    // 🔍 Show all tables in the current database
+    const tableList = await projectClient.query(`
+      SELECT table_name
+      FROM information_schema.tables
+      WHERE table_schema = 'public' AND table_type = 'BASE TABLE';
+    `);
 
+    console.log('✅ Tables in the database:');
+    tableList.rows.forEach(row => console.log(`- ${row.table_name}`));
     await projectClient.end();
 
   } catch (err) {

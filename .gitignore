@@ -7,7 +7,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # Environment variables
-.env
+#.env
 
 # Build output
 dist/
@@ -17,3 +17,6 @@ build/
 .vscode/
 .idea/
 .DS_Store
+
+
+hacked.txt
