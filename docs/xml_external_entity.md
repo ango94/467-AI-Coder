@@ -25,20 +25,19 @@ Update a Todo item via an XML payload.
 </todo>
 
 📤 Response
-
-    200 OK
+✅ 200 OK
 
 {
   "message": "Todo updated via XML"
 }
 
-    400 Bad Request
+❌ 400 Bad Request
 
 {
   "message": "Invalid XML: missing id or content"
 }
 
-    500 Internal Server Error
+❌ 500 Internal Server Error
 
 {
   "message": "Failed to update via XML"
@@ -49,13 +48,13 @@ What is XXE?
 
 XML External Entity (XXE) attacks exploit vulnerabilities in XML parsers that allow external entities to be defined and loaded. If your server processes XML insecurely, attackers may:
 
-    Read local files (e.g., /etc/passwd)
+    📂 Read local files (e.g., /etc/passwd)
 
-    Trigger Server-Side Request Forgery (SSRF)
+    🌐 Trigger Server-Side Request Forgery (SSRF)
 
-    Cause Denial of Service (DoS)
+    💥 Cause Denial of Service (DoS)
 
-Malicious XXE Example
+🧨 Malicious XXE Example
 
 <?xml version="1.0"?>
 <!DOCTYPE foo [ <!ENTITY xxe SYSTEM "file:///etc/passwd"> ]>
@@ -77,7 +76,7 @@ const parser = new XMLParser({
 
 const parsed = parser.parse(req.body);
 
-✅ Best Practices
+💡 Best Practices
 
     🧪 Validate and sanitize input XML.
 

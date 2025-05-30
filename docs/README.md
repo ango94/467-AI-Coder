@@ -18,7 +18,9 @@ Each page includes:
 | ⚠️ Using Components with Known Vulnerabilities | ✅ Mitigated | [View Documentation](known_vulnerable_components.md) |
 | 📉 Insufficient Logging & Monitoring | ✅ Mitigated | [View Documentation](insufficient_logging_monitoring.md) |
 | 📦 Insecure Deserialization | ✅ Mitigated | [View Documentation](insecure_deserialization.md) |
-
+| 🧾 Security Misconfiguration | ✅ Mitigated | [View Documentation](security_misconfiguration.md) |
+| 🔐 Sensitive Data Exposure | ✅ Mitigated | [View Documentation](sensitive_data_exposure.md) |
+| 🧨 XML External Entity (XXE) | ✅ Mitigated | [View Documentation](xml_external_entity.md) |
 ---
 
 ## 🧠 AI Integration
