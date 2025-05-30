@@ -21,6 +21,9 @@ Each page includes:
 | ⚠️ Broken Authentication | ✅ Mitigated | [View Documentation](broken_authentication.md) |
 | 📉 Cross Site Scripting | ✅ Mitigated | [View Documentation](cross_site_scripting.md) |
 | 📦 SQL Injection | ✅ Mitigated | [View Documentation](sql_injection.md) |
+| 🧾 Security Misconfiguration | ✅ Mitigated | [View Documentation](security_misconfiguration.md) |
+| 🔐 Sensitive Data Exposure | ✅ Mitigated | [View Documentation](sensitive_data_exposure.md) |
+| 🧨 XML External Entity (XXE) | ✅ Mitigated | [View Documentation](xml_external_entity.md) |
 
 ---
 
