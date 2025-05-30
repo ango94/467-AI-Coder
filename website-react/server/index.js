@@ -11,6 +11,8 @@ const SALT_ROUNDS = 10;
 const { XMLParser } = require('fast-xml-parser');
 const xmlParser = new XMLParser({ ignoreAttributes: false, processEntities: false });
 const serialize = require('serialize-javascript'); // Moved require here
+const path = require('path');
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -31,8 +33,19 @@ app.use(
   })
 );
 
+// // Serve static files from the React frontend
+// app.use(express.static(path.join(__dirname, '..', 'client', 'build')));
+
+// // Your API routes go here
+
+// // Catch-all: send back index.html for client-side routing
+// app.get('/{*any}', (req, res) => {
+//   res.sendFile(path.join(__dirname, '..', 'client', 'build', 'index.html'));
+// });
+
 // CORS with origin allowed for frontend (adjust if your frontend URL differs)
-app.use(cors({ origin: 'http://localhost:3000' }));
+// app.use(cors({ origin: 'http://localhost:3000' }));
+app.use(cors({ origin: '*' }));
 
 // Body parsers
 app.use(express.json());
@@ -42,13 +55,20 @@ app.use(express.urlencoded({ extended: true }));
 initDatabase();
 
 // DB connection pool
+// const pool = new Pool({
+//   user: process.env.DB_USER,
+//   password: process.env.DB_PASSWORD,
+//   host: process.env.DB_HOST,
+//   port: process.env.DB_PORT,
+//   database: process.env.DB_NAME,
+//   connectionString: process.env.DATABASE_URL
+// });
+const isProduction = true;
 const pool = new Pool({
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  database: process.env.DB_NAME,
+  connectionString: process.env.DATABASE_URL,
+  ssl: isProduction ? { rejectUnauthorized: false } : false
 });
+
 
 // ====== REGISTER ======
 // Global request logger

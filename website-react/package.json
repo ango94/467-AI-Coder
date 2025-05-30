@@ -4,7 +4,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "start": "node server/index.js",
+    "build": "cd client && npm install && npm run build",
     "start:bac": "concurrently \"npm run server:bac\" \"npm run client\"",
     "start:csp": "concurrently \"npm run server:csp\" \"npm run client\"",
     "start:uvc": "concurrently \"npm run server:uvc\" \"npm run client\"",

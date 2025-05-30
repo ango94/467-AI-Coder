@@ -1,45 +1,49 @@
 const { Client } = require('pg');
 require('dotenv').config({ path: __dirname + '/.env' });
 
-// Connect to the default 'postgres' DB first (admin-level)
-const adminClient = new Client({
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  database: 'postgres'  // default admin db
-});
-
-async function initDatabase() {
-  try {
-    await adminClient.connect();
-
-    // Check if the target database exists
-    const dbCheck = await adminClient.query(
-      `SELECT 1 FROM pg_database WHERE datname = $1`, [process.env.DB_NAME]
-    );
-
-    if (dbCheck.rowCount === 0) {
-      await adminClient.query(`CREATE DATABASE ${process.env.DB_NAME}`);
-      console.log(`Database '${process.env.DB_NAME}' created.`);
-    } else {
-      console.log(`Database '${process.env.DB_NAME}' already exists.`);
-    }
-
-    await adminClient.end();
-
-    // Connect to the new database and create tables if needed
-    const projectClient = new Client({
+// Determine connection options
+function getClientConfig(dbName = 'postgres') {
+  if (process.env.DATABASE_URL) {
+    return {
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false },
+    };
+  } else {
+    return {
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       host: process.env.DB_HOST,
       port: process.env.DB_PORT,
-      database: process.env.DB_NAME
-    });
+      database: dbName,
+    };
+  }
+}
 
+async function initDatabase() {
+  const adminClient = new Client(getClientConfig('postgres'));
+  
+  try {
+    await adminClient.connect();
+
+    if (!process.env.DATABASE_URL) {
+      // Check/create DB only in local dev
+      const dbCheck = await adminClient.query(
+        `SELECT 1 FROM pg_database WHERE datname = $1`, [process.env.DB_NAME]
+      );
+
+      if (dbCheck.rowCount === 0) {
+        await adminClient.query(`CREATE DATABASE ${process.env.DB_NAME}`);
+        console.log(`Database '${process.env.DB_NAME}' created.`);
+      } else {
+        console.log(`Database '${process.env.DB_NAME}' already exists.`);
+      }
+    }
+
+    await adminClient.end();
+
+    const projectClient = new Client(getClientConfig(process.env.DB_NAME));
     await projectClient.connect();
 
-    // Create users table if it doesn't exist
     await projectClient.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -59,11 +63,10 @@ async function initDatabase() {
       );
     `);
     console.log("Table 'todos' checked/created.");
-    
-    // Insert test admin and user if they don’t already exist
+
     const adminExists = await projectClient.query(`SELECT * FROM users WHERE username = 'admin'`);
     const userExists = await projectClient.query(`SELECT * FROM users WHERE username = 'user1'`);
-    
+
     if (adminExists.rowCount === 0) {
       const hashedAdmin = 'admin123';
       await projectClient.query(
