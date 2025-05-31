@@ -154,28 +154,30 @@ app.put('/users/:username', async (req, res) => {
 
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
-  const result = await pool.query(
-    'SELECT * FROM users WHERE username = $1',
-    [username]
-  );
 
   try {
+    const result = await pool.query(
+      'SELECT * FROM users WHERE username = $1',
+      [username]
+    );
 
     if (result.rows.length === 1) {
       const user = result.rows[0];
       const isMatch = await bcrypt.compare(password, user.password);
-      if (result.rows.length === 1) {
-        const user = result.rows[0];
+
+      if (isMatch) {
         const token = generateToken(user);
         logEvent(`Login SUCCESS: ${username}`);
-        res.status(200).json({ token });
+        return res.status(200).json({ token });
       } else {
-        logEvent(`Login FAILURE: ${username}`);
-        res.status(401).json({ success: false, error: 'Invalid credentials' });
+        logEvent(`Login FAILURE (bad password): ${username}`);
+        return res.status(401).json({ success: false, error: 'Invalid credentials' });
       }
+    } else {
+      logEvent(`Login FAILURE (user not found): ${username}`);
+      return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
-  }
-  catch (err) {
+  } catch (err) {
     logEvent(`Login ERROR for ${username}: ${err.message}`);
     res.status(500).json({ success: false });
   }
