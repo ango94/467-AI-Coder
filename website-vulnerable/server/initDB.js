@@ -28,12 +28,12 @@ async function initDatabase() {
     await adminClient.end();
 
     // Connect to the new database and create tables if needed
+    // Connect to the database and create tables if needed
     const projectClient = new Client({
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      // host: process.env.DB_HOST,
-      // port: process.env.DB_PORT,
-      database: process.env.DB_NAME
+      connectionString: process.env.DATABASE_URL,
+      ssl: {
+        rejectUnauthorized: false
+      }
     });
 
     await projectClient.connect();
@@ -58,11 +58,11 @@ async function initDatabase() {
       );
     `);
     console.log("Table 'todosv' checked/created.");
-    
+
     // Insert test admin and user if they don’t already exist
     const adminExists = await projectClient.query(`SELECT * FROM usersv WHERE username = 'admin'`);
     const userExists = await projectClient.query(`SELECT * FROM usersv WHERE username = 'user1'`);
-    
+
     if (adminExists.rowCount === 0) {
       const hashedAdmin = 'admin123';
       await projectClient.query(
@@ -80,7 +80,7 @@ async function initDatabase() {
       );
       console.log('Regular user created');
     }
-    
+
     // 🔍 Show all tables in the current database
     const tableList = await projectClient.query(`
       SELECT table_name
