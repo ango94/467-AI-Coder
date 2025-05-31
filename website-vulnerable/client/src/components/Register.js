@@ -21,7 +21,7 @@ function Register() {
     }
 
     try {
-      await axios.post('http://localhost:5000/register', { username, password });
+      await axios.post('https://four67-ai-coder-backend.onrender.com/register', { username, password });
       setSuccess('Registration successful! Redirecting to login...');
       setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
