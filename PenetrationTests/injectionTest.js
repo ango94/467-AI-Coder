@@ -3,7 +3,8 @@ import fs from 'fs';
 import path from 'path';
 
 // Target base URL
-const baseURL = 'http://localhost:5000/users/';
+const preURL = process.argv[2] || 'http://localhost:5000';
+const baseURL = `${preURL}/users/`;
 
 // SQL injection test payloads
 const payloads = [

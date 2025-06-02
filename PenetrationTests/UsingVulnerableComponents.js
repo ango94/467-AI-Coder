@@ -1,7 +1,7 @@
 // UVCTest/UsingVulnerableComponents.js
 import axios from 'axios';
 
-const baseURL = 'http://localhost:5000';
+const baseURL = process.argv[2] || 'http://localhost:5000';
 const url = `${baseURL}/serialize-demo`;
 
 async function runFunctionInjectionTest() {

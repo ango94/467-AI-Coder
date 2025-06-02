@@ -4,6 +4,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
+const baseURL = process.argv[2] || 'http://localhost:5000/';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -32,18 +34,18 @@ async function runLoggingTest() {
 
   // Trigger loggable actions
   try {
-    await axios.post('http://localhost:5000/login', {
+    await axios.post(`${baseURL}/login`, {
       username: 'nonexistent',
       password: 'wrong'
     });
   } catch {}
 
   try {
-    await axios.get('http://localhost:5000/admin');
+    await axios.get(`${baseURL}/admin`);
   } catch {}
 
   try {
-    await axios.post('http://localhost:5000/todos', {
+    await axios.post(`${baseURL}//todos`, {
       user_id: 1,
       content: 'Test log entry'
     });
