@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const baseURL = 'http://localhost:5000';
+const baseURL = process.argv[2] || 'http://localhost:5000';
 
 const attackerCredentials = {
   username: 'pentester_' + Math.floor(Math.random() * 10000),

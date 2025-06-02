@@ -9,7 +9,7 @@ const serialize = require('serialize-javascript');
 const xml2js = require('xml2js');
 const initDatabase = require('./initDB');
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 require('dotenv').config();
 

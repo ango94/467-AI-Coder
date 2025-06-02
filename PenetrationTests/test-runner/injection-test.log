@@ -1,0 +1,12 @@
+[2025-05-31T17:51:59.876Z] 
+---
+Testing payload: ' OR '1'='1
+[2025-05-31T17:51:59.902Z] Request failed: 
+[2025-05-31T17:51:59.902Z] 
+---
+Testing payload: ' OR '1'='1' --
+[2025-05-31T17:51:59.904Z] Request failed: 
+[2025-05-31T17:51:59.905Z] 
+---
+Testing payload: ' OR 'a'='a
+[2025-05-31T17:51:59.906Z] Request failed: 

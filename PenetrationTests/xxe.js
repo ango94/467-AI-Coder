@@ -19,11 +19,13 @@ const xmlPayloads = [
   </todo>`
 ];
 
+const baseURL = process.argv[2] || 'http://localhost:5000';
+
 async function runAllXXETests() {
   for (let i = 0; i < xmlPayloads.length; i++) {
     const xml = xmlPayloads[i];
     try {
-      const response = await axios.post('http://localhost:5000/edit-todo-xml', xml, {
+      const response = await axios.post(`${baseURL}/edit-todo-xml`, xml, {
         headers: { 'Content-Type': 'application/xml' }
       });
 
