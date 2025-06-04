@@ -60,6 +60,7 @@ X-Frame-Options: DENY
 Content-Security-Policy: default-src 'self'
 Referrer-Policy: no-referrer
 Permissions-Policy: geolocation=(), camera=()
+```
 
 5. Handle Errors Securely
 
