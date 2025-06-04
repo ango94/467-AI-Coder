@@ -89,3 +89,5 @@ app.post('/serialize', (req, res) => {
 - Use `npm audit`, `npm outdated`, and tools like `Snyk` or `Dependabot` to continuously monitor dependencies.
 - Assume that **indirect/transitive dependencies** also carry risk.
 - Review OWASP guidance on [Software Composition Analysis (SCA)](https://owasp.org/www-project-dependency-check/) to automate detection.
+
+[⬅️ Back to main directory](./README.md)

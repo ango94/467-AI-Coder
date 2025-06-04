@@ -93,3 +93,4 @@ app.post('/deserialize', authenticateToken, (req, res) => {
 - Insecure deserialization isn’t always about code execution — **logic abuse or data tampering** is just as dangerous.
 - Refer to [OWASP’s Deserialization Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Deserialization_Cheat_Sheet.html) for mitigation patterns in your language.
 
+[⬅️ Back to main directory](./README.md)

@@ -36,7 +36,7 @@ Always use HTTPS with a valid SSL/TLS certificate to encrypt data in transit.
 
 ```bash
 Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
-
+```
 2. Encrypt Sensitive Data at Rest
 
 Use strong encryption algorithms (e.g., AES-256) to protect data stored in databases or files.
@@ -72,3 +72,5 @@ POST /reset-password (in body: { token: "abc123" })
     Mask or omit sensitive fields from application logs.
 
     Avoid storing tokens, credentials, or secrets in localStorage or sessionStorage unless absolutely necessary.
+
+[⬅️ Back to main directory](./README.md)

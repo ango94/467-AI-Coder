@@ -14,16 +14,17 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "ai-coder-webapp": "file:../..",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "fast-xml-parser": "^5.2.3",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.13.2",
     "node-serialize": "^0.0.4",
     "pg": "^8.14.1",
-    "serialize-javascript": "^2.1.1",
-    "helmet": "^8.1.0",
-    "jsonwebtoken": "^9.0.2",
-    "fast-xml-parser": "^5.2.3"
+    "serialize-javascript": "^2.1.1"
   }
 }

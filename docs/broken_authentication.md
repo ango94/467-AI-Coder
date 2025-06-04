@@ -47,3 +47,4 @@ Always validate authentication tokens on every protected route.
 Implement session expiration and logout to reduce the risk of token reuse.
 Review OWASP’s Authentication Cheat Sheet for best practices.
 
+[⬅️ Back to main directory](./README.md)

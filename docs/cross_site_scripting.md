@@ -73,3 +73,4 @@ Implement a strong Content Security Policy (CSP) to provide defense-in-depth.
 Store sensitive tokens in HTTP-only cookies to reduce XSS impact.
 Review OWASP’s XSS Prevention Cheat Sheet for best practices.
 
+[⬅️ Back to main directory](./README.md)

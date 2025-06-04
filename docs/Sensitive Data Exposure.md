@@ -31,3 +31,5 @@
 
 ## 8. Principle of Least Privilege
 - The PostgreSQL role used by the backend has limited access to required tables and operations only.
+
+[⬅️ Back to main directory](./README.md)

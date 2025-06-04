@@ -6,18 +6,12 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server/index.js",
     "build": "cd client && npm install && npm run build",
-    "start:bac": "concurrently \"npm run server:bac\" \"npm run client\"",
-    "start:csp": "concurrently \"npm run server:csp\" \"npm run client\"",
-    "start:uvc": "concurrently \"npm run server:uvc\" \"npm run client\"",
-    "server": "cd server && nodemon index.js",
-    "server:bac": "cd server && nodemon BAC_index.js",
-    "server:uvc": "cd server-uvc && nodemon UVC_index.js",
-    "server:csp": "cd server && nodemon CSP_index.js",
     "client": "cd client && npm start",
     "reset": "cd server && node resetDB.js",
-    "test:bac": "cd ../BACTests && node BrokenAccessControl.js",
-    "test:uvc": "cd ../UVCTest && node UsingVulnerableComponents.js",
-    "test:log": "cd ../LOGTest && node LogChecker.js"
+    "test:bac": "cd ../PenetrationTests && node BrokenAccessControl.js http://localhost:5000",
+    "test:uvc": "cd ../PenetrationTests && node UsingVulnerableComponents.js http://localhost:5000",
+    "test:log": "cd ../PenetrationTests && node LogChecker.js http://localhost:5000",
+    "test:des": "cd ../PenetrationTests && node InsecureDeserialization.js http://localhost:5000"
   },
   "keywords": [],
   "author": "",
@@ -28,6 +22,7 @@
     "nodemon": "^3.1.9"
   },
   "dependencies": {
+    "ai-coder-webapp": "file:..",
     "axios": "^1.9.0",
     "bcrypt": "^5.1.1",
     "fast-xml-parser": "^5.2.3",

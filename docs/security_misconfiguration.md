@@ -60,6 +60,7 @@ X-Frame-Options: DENY
 Content-Security-Policy: default-src 'self'
 Referrer-Policy: no-referrer
 Permissions-Policy: geolocation=(), camera=()
+```
 
 5. Handle Errors Securely
 
@@ -106,3 +107,5 @@ Permissions-Policy: geolocation=(), camera=()
     Monitor for CVEs and apply security patches quickly.
 
     Remove or isolate deprecated systems and services.
+
+[⬅️ Back to main directory](./README.md)

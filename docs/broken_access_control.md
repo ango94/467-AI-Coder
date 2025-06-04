@@ -105,3 +105,5 @@ app.get('/admin', authenticateToken, (req, res) => {
 - Use a **deny-by-default** approach and explicitly grant access only where appropriate.
 - **JWT-based user verification** must be validated at every sensitive route.
 - Review [OWASP’s Access Control Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Access_Control_Cheat_Sheet.html) for real-world best practices.
+
+[⬅️ Back to main directory](./README.md)
