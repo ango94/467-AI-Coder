@@ -11,17 +11,18 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "ai-coder-webapp": "file:../..",
     "bcrypt": "^6.0.0",
     "body-parser": "1.13.3",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.13.2",
+    "node-serialize": "^0.0.4",
     "pg": "^8.14.1",
     "serialize-javascript": "1.6.1",
-    "node-serialize": "^0.0.4",
-    "xml2js": "^0.6.2",
-    "jsonwebtoken": "^9.0.2"
+    "xml2js": "^0.6.2"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"

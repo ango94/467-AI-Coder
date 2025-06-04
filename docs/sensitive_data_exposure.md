@@ -72,3 +72,5 @@ POST /reset-password (in body: { token: "abc123" })
     Mask or omit sensitive fields from application logs.
 
     Avoid storing tokens, credentials, or secrets in localStorage or sessionStorage unless absolutely necessary.
+
+[⬅️ Back to main directory](./README.md)

@@ -100,3 +100,5 @@ app.get('/admin', authenticateToken, (req, res) => {
   - Access denials
   - Input validation errors
   - Unexpected system failures
+
+[⬅️ Back to main directory](./README.md)

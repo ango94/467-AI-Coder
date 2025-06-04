@@ -55,3 +55,5 @@ Always use parameterized queries or ORM methods that prevent injection.
 Validate and sanitize user input as an additional layer of defense.
 Regularly test for SQL injection using automated tools and manual payloads.
 Review OWASP’s SQL Injection Prevention Cheat Sheet for best practices.
+
+[⬅️ Back to main directory](./README.md)

@@ -8,10 +8,10 @@
     "server": "cd server && nodemon vulnerable_index.js",
     "client": "cd client && npm start",
     "reset": "cd server && node resetDB.js",
-    "test:bac": "node ../PenetrationTests/BrokenAccessControl.js ; node server/initDB.js",
-    "test:uvc": "cd ../PenetrationTests && node UsingVulnerableComponents.js",
-    "test:log": "cd ../PenetrationTests && node LogChecker.js",
-    "test:ids": "cd ../PenetrationTests && node InsecureDeserialization.js"
+    "test:bac": "cd ../PenetrationTests && node BrokenAccessControl.js http://localhost:5001",
+    "test:uvc": "cd ../PenetrationTests && node UsingVulnerableComponents.js http://localhost:5001",
+    "test:log": "cd ../PenetrationTests && node LogChecker.js http://localhost:5001",
+    "test:des": "cd ../PenetrationTests && node InsecureDeserialization.js http://localhost:5001"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +22,7 @@
     "nodemon": "^3.1.9"
   },
   "dependencies": {
+    "ai-coder-webapp": "file:..",
     "axios": "^1.9.0",
     "bcrypt": "^5.1.1",
     "fast-xml-parser": "^5.2.3",
