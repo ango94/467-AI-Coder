@@ -119,7 +119,7 @@ To delete all tables created by the app, navigate to either website directory:
 
 ---
 
-## 🔐 Security Test Modules
+## Security Test Modules
 
 This section describes how to run various security tests against the vulnerable web application.
 
