@@ -11,7 +11,9 @@
     "test:bac": "cd ../PenetrationTests && node BrokenAccessControl.js http://localhost:5000",
     "test:uvc": "cd ../PenetrationTests && node UsingVulnerableComponents.js http://localhost:5000",
     "test:log": "cd ../PenetrationTests && node LogChecker.js http://localhost:5000",
-    "test:des": "cd ../PenetrationTests && node InsecureDeserialization.js http://localhost:5000"
+    "test:des": "cd ../PenetrationTests && node InsecureDeserialization.js http://localhost:5000",
+    "test:inj": "cd ../PenetrationTests && node InsecureInjection.js http://localhost:5000",
+    "test:xxe": "cd ../PenetrationTests && node xxe.js http://localhost:5000"
   },
   "keywords": [],
   "author": "",
